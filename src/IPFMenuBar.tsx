@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { openActivityLog } from './activitylog/activityLogReducer'
+import { useIPFDispatch, useIPFSelector } from './redux/hooks'
+import { selectTestFoo, testFoo } from './redux/testReducer'
 
-interface Props {
-  openActivityLog: () => void
-}
+interface Props {}
 
-const IPFMenuBar = ({openActivityLog}: Props) => {
+const IPFMenuBar = ({}: Props) => {
   const [count, setCount] = useState(0)
+
+  const dispatch = useIPFDispatch()
 
   return (
     <>
@@ -17,7 +20,7 @@ const IPFMenuBar = ({openActivityLog}: Props) => {
       <div className="App">
       <br />
       <p>
-        <button type="button" onClick={openActivityLog}>
+        <button type="button" onClick={()=>dispatch(openActivityLog())}>
           Activity Log
         </button>
       </p>
