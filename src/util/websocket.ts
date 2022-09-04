@@ -29,8 +29,6 @@ export const consumeWebSocketMessage = (type: string, consume: (data: string) =>
   })
 }
 
-
-
 interface WebsocketMessageSplit {
   type: string,
   data: string

@@ -1,12 +1,12 @@
-import { defineConfig, optimizeDeps } from "vite";
-import react from "@vitejs/plugin-react"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
 // https://vitejs.dev/config/
 
 const name = "Idle Pixel Fixed";
 const namespace = "com.kape142.idlepixelfixed";
-const version = "0.2";
+const version = "0.3";
 const description = "Extension to improve the experience of Idle Pixel";
 const author = "kape142";
 const match = "https://idle-pixel.com/login/play/*";

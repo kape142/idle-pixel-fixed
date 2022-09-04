@@ -10,9 +10,9 @@ export const useLocalStorage = <T>(
   key: string,
   initialValue: T,
   id: string
-): [T, Dispatch<T>] => {
+): [T, Dispatch<SetStateAction<T>>] => {
   const [value, setValue] = useState<T>(() => {
-    const prevSaved = window.localStorage.getItem(key);
+    const prevSaved = window.localStorage.getItem(`${var_username}.${key}`);
     return prevSaved ? JSON.parse(prevSaved) : initialValue;
   });
 
@@ -33,7 +33,10 @@ export const useLocalStorage = <T>(
   }, [key, setValue, id]);
 
   useEffect(() => {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(
+      `${var_username}.${key}`,
+      JSON.stringify(value)
+    );
     subscribers
       .filter((sub) => sub.key === key)
       .forEach((sub) => {

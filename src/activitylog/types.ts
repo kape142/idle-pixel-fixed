@@ -5,10 +5,16 @@ export interface ActivityLogItem {
 }
 
 export interface LootContent {
-    title: string
-    items: {
-        image: string
-        label: string
-        background: string
-    }[]
+    extraData: string
+    items: LootItem[]
+}
+
+export interface LootItem {
+    image: string
+    label: string
+    background: string
+}
+
+export interface ActivityLogSettings {
+    blockDialogues: boolean
 }
