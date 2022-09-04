@@ -1,1 +1,2 @@
-# idle-pixel-fixed
+# Idle Pixel Fixed
+This is an extension for the game Idle Pixel found on https://idle-pixel.com . The code is exported to GreasyFork to this script https://greasyfork.org/en/scripts/450678-idle-pixel-fixed which can be used with extensions like TamperMonkey to improve the experience of Idle Pixel.

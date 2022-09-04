@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react'
-import {useLocalStorage} from "../util/useLocalStorage";
 import LootEntry from "./entries/LootEntry";
-import {ActivityLogItem} from "./types";
+import { ActivityLogItem } from "./types";
+import { TYPE_LOOT } from "./useActivityLogWebsocketListener";
 
-interface Props{
-    item: ActivityLogItem
+interface Props {
+  item: ActivityLogItem;
 }
 
-const ActivityLogEntry = ({item}: Props)  => {
+const ActivityLogEntry = ({ item }: Props) => {
+  switch (item.type) {
+    case TYPE_LOOT:
+      return <LootEntry content={item.content} />;
+    default:
+      return null;
+  }
+};
 
-    switch(item.type){
-        case "loot": return <LootEntry content={item.content} />
-        default: return null
-    }
-}
-
-export default ActivityLogEntry
+export default ActivityLogEntry;
