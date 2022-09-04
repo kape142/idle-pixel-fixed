@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import {useLocalStorage} from "../util/useLocalStorage";
+import {useLocalStorage} from "../util/localstorage/useLocalStorage";
 import LootEntry from "./entries/LootEntry";
 import {ActivityLogItem} from "./types";
 

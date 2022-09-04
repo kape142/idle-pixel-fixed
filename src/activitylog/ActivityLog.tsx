@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useIPFDispatch, useIPFSelector } from '../redux/hooks';
 import { selectTestFoo, testFoo } from '../redux/testReducer';
-import {useLocalStorage} from "../util/useLocalStorage";
+import {useLocalStorage} from "../util/localstorage/useLocalStorage";
 import ActivityLogEntry from "./ActivityLogEntry";
 import { closeActivityLog, selectActivityLogIsOpen } from './activityLogReducer';
 import {ActivityLogItem} from "./types";
@@ -9,11 +9,10 @@ import {ActivityLogItem} from "./types";
 interface Props {}
 
 const ActivityLog = ({}: Props) => {
-  //useEffect(()=>{setInterval(()=>setOpen(!open), 5000)}, [])
 
   //OPEN_LOOT_DIALOGUE=none~images/junk.png~30 Junk~#cce6ff~images/stone.png~3 Stone~#cce6ff
 
-  const [list, setList] = useLocalStorage<ActivityLogItem[]>("activity-log", [])
+  const [list, setList] = useLocalStorage<ActivityLogItem[]>("activity-log", [], "ActivityLog")
 
   
   const open = useIPFSelector(selectActivityLogIsOpen)
