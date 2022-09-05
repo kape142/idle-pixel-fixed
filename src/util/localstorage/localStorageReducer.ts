@@ -1,5 +1,4 @@
-import { createSlice, Dispatch, PayloadAction } from "@reduxjs/toolkit";
-import { SetStateAction } from "react";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { RootState } from "../../redux/store";
 
@@ -22,13 +21,9 @@ const removeSubscriber = (
   subscriber: Omit<LocalStorageSubscriber, "setValue">
 ) => {
   state.subscribers = state.subscribers.filter(
-    (sub) =>
-      !(
-        sub.id === subscriber.id &&
-        sub.key === subscriber.key
-      )
+    (sub) => !(sub.id === subscriber.id && sub.key === subscriber.key)
   );
-  return state
+  return state;
 };
 
 export const localStorageSlice = createSlice({
@@ -39,14 +34,14 @@ export const localStorageSlice = createSlice({
       state,
       action: PayloadAction<LocalStorageSubscriber>
     ) {
-      state = removeSubscriber(state, action.payload)
+      state = removeSubscriber(state, action.payload);
       state.subscribers.push(action.payload);
     },
     unsubscribeFromLocalStorage(
       state,
       action: PayloadAction<Omit<LocalStorageSubscriber, "setValue">>
     ) {
-      state = removeSubscriber(state, action.payload)
+      state = removeSubscriber(state, action.payload);
     },
   },
 });

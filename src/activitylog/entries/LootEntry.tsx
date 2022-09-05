@@ -1,10 +1,12 @@
 import { LootContent } from "../types";
+import {formatDate, timeSince} from "../../util/timeUtils";
 
 interface Props {
   content: LootContent;
+  timestamp: Date;
 }
 
-const LootEntry = ({ content }: Props) => {
+const LootEntry = ({ content, timestamp }: Props) => {
   return (
     <div
       style={{
@@ -13,7 +15,30 @@ const LootEntry = ({ content }: Props) => {
         padding: "10px",
       }}
     >
-      Loot
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          justifyContent: "space-around",
+        }}
+      >
+        <div
+          style={{
+            visibility: "hidden",
+          }}
+        >
+          padding
+        </div>
+        <div>Loot</div>
+        <div
+          title={formatDate(timestamp)}
+          style={{
+            color: "gray",
+          }}
+        >
+          {timeSince(timestamp)}
+        </div>
+      </div>
       <div
         style={{
           display: "flex",

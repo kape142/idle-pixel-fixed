@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.3
+// @version      0.3.1
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -41,12 +41,12 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   }
   var React__default = /* @__PURE__ */ _interopDefaultLegacy(React$1);
   var ReactDOM__default = /* @__PURE__ */ _interopDefaultLegacy(ReactDOM);
-  const initialState$2 = {
+  const initialState$3 = {
     isOpen: false
   };
   const activityLogSlice = toolkit.createSlice({
     name: "Activity Log",
-    initialState: initialState$2,
+    initialState: initialState$3,
     reducers: {
       openActivityLog(state) {
         state.isOpen = true;
@@ -74,7 +74,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       onClick: () => dispatch(openActivityLog())
     }, "Activity Log")))));
   };
-  const initialState$1 = {
+  const initialState$2 = {
     subscribers: []
   };
   const removeSubscriber = (state, subscriber) => {
@@ -83,7 +83,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   };
   const localStorageSlice = toolkit.createSlice({
     name: "Local Storage",
-    initialState: initialState$1,
+    initialState: initialState$2,
     reducers: {
       subscribeToLocalStorage(state, action) {
         state = removeSubscriber(state, action.payload);
@@ -122,14 +122,48 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     }, [key, value]);
     return [value, setValue];
   };
-  const LootEntry = ({ content }) => {
+  const timeSince = (timestamp) => {
+    const parsedTimestamp = new Date(timestamp);
+    const now = new Date();
+    const secs = (now.getTime() - parsedTimestamp.getTime()) / 1e3;
+    if (secs < 60)
+      return `${Math.floor(secs)}s`;
+    const mins = (now.getTime() - parsedTimestamp.getTime()) / 6e4;
+    if (mins < 60)
+      return `${Math.floor(mins)}m`;
+    const hours = (now.getTime() - parsedTimestamp.getTime()) / 36e5;
+    if (hours < 24)
+      return `${Math.floor(hours)}h`;
+    const days = (now.getTime() - parsedTimestamp.getTime()) / 864e5;
+    if (days < 365)
+      return `${Math.floor(days)}d`;
+    const years = (now.getTime() - parsedTimestamp.getTime()) / 31536e6;
+    return `${Math.floor(years)}y`;
+  };
+  const formatDate = (timestamp) => new Date(timestamp).toLocaleString();
+  const LootEntry = ({ content, timestamp }) => {
     return /* @__PURE__ */ React.createElement("div", {
       style: {
         borderBottom: "1px solid grey",
         margin: "10px",
         padding: "10px"
       }
-    }, "Loot", /* @__PURE__ */ React.createElement("div", {
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-around"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        visibility: "hidden"
+      }
+    }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Loot"), /* @__PURE__ */ React.createElement("div", {
+      title: formatDate(timestamp),
+      style: {
+        color: "gray"
+      }
+    }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         justifyContent: "center",
@@ -154,32 +188,74 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       alt: `${item.label}-image`
     }), item.label))));
   };
-  const onMessage = (func) => {
-    const old = websocket.connected_socket.onmessage;
-    websocket.connected_socket.onmessage = function(ev) {
-      const updatedEv = func(ev);
-      if (old)
-        old(updatedEv);
-    };
+  const initialState$1 = {
+    consumers: []
   };
-  const observeWebSocketMessage = (type, observe) => {
-    onMessage((ev) => {
-      const { type: foundType, data } = websocketMessageSplit(ev.data);
-      if (type === foundType) {
-        observe(data);
-      }
-      return ev;
-    });
+  const removeConsumer = (state, consumerId) => {
+    state.consumers = state.consumers.filter((consumer) => !(consumer.id === consumerId));
+    return state;
   };
-  const consumeWebSocketMessage = (type, consume) => {
-    onMessage((ev) => {
-      const { type: foundType, data } = websocketMessageSplit(ev.data);
-      if (type === foundType) {
-        consume(data);
-        return Object.assign({}, ev, { data: "" });
+  const websocketSlice = toolkit.createSlice({
+    name: "Websocket",
+    initialState: initialState$1,
+    reducers: {
+      addWebsocketConsumer(state, action) {
+        removeConsumer(state, action.payload.id);
+        state.consumers.push(action.payload);
+      },
+      removeWebsocketConsumer(state, action) {
+        removeConsumer(state, action.payload);
       }
-      return ev;
-    });
+    }
+  });
+  const { addWebsocketConsumer, removeWebsocketConsumer } = websocketSlice.actions;
+  const selectWebsocketConsumers = (state) => state.websocket.consumers;
+  var websocketReducer = websocketSlice.reducer;
+  const useWebsocket = (onMessage, priority, id) => {
+    const oldOnMessage = React$1.useRef(websocket.connected_socket.onmessage);
+    const dispatch = useIPFDispatch();
+    const consumers = useIPFSelector(selectWebsocketConsumers);
+    const functions = React$1.useMemo(() => {
+      var _a;
+      return consumers.concat([
+        {
+          onMessage: (_a = oldOnMessage.current) != null ? _a : trivialOnMessage,
+          priority: 0,
+          id: "smitty"
+        }
+      ]).sort((a, b) => b.priority - a.priority).map((consumer) => consumer.onMessage);
+    }, [consumers]);
+    React$1.useEffect(() => {
+      dispatch(addWebsocketConsumer({
+        onMessage,
+        priority,
+        id
+      }));
+      return () => {
+        dispatch(removeWebsocketConsumer(id));
+      };
+    }, [onMessage, priority, id]);
+    React$1.useEffect(() => {
+      websocket.connected_socket.onmessage = (ev) => {
+        functions.reduce((acc, cur) => cur(acc), ev);
+      };
+    }, [consumers]);
+  };
+  const trivialOnMessage = (ev) => ev;
+  const observeWebSocketMessage = (type, observe) => (ev) => {
+    const { type: foundType, data } = websocketMessageSplit(ev.data);
+    if (type === foundType) {
+      observe(data);
+    }
+    return ev;
+  };
+  const consumeWebSocketMessage = (type, consume) => (ev) => {
+    const { type: foundType, data } = websocketMessageSplit(ev.data);
+    if (type === foundType) {
+      consume(data);
+      return Object.assign({}, ev, { data: "" });
+    }
+    return ev;
   };
   const websocketMessageSplit = (message) => {
     const split = message.split("=");
@@ -187,13 +263,12 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   };
   const useActivityLogWebSocketListener = (settings) => {
     const [list, setList] = useLocalStorage("activity-log", [], "useActivityLogWebSocketListener");
-    React$1.useEffect(() => {
-      const onMessage2 = settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage;
-      onMessage2("OPEN_LOOT_DIALOGUE", (data) => {
-        const activityLogItem = lootDialogueParser(data);
-        setList((list2) => [activityLogItem].concat(list2));
-      });
-    }, []);
+    const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
+    const onMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
+      const activityLogItem = lootDialogueParser(data);
+      setList((list2) => [activityLogItem].concat(list2));
+    }), [onMessageFactory]);
+    useWebsocket(onMessage, 1e3, "useActivityLogWebSocketListener");
     return list;
   };
   const TYPE_LOOT = "LOOT";
@@ -223,7 +298,8 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     switch (item.type) {
       case TYPE_LOOT:
         return /* @__PURE__ */ React.createElement(LootEntry, {
-          content: item.content
+          content: item.content,
+          timestamp: item.timestamp
         });
       default:
         return null;
@@ -251,8 +327,11 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", {
       className: "color-grey"
     }, "Activity log"), /* @__PURE__ */ React.createElement("button", {
+      title: "Toggle showing loot pop-ups. O means they will appear, \xD8 means they are blocked.",
       type: "button",
-      onClick: () => setSettings((set) => __spreadProps(__spreadValues({}, set), { blockDialogues: !set.blockDialogues })),
+      onClick: () => setSettings((set) => __spreadProps(__spreadValues({}, set), {
+        blockDialogues: !set.blockDialogues
+      })),
       style: {
         position: "absolute",
         top: "10px",
@@ -311,7 +390,8 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     reducer: {
       test: testReducer,
       activityLog: activityLogReducer,
-      localStorage: localStorageReducer
+      localStorage: localStorageReducer,
+      websocket: websocketReducer
     }
   });
   const appendReact = (component, id, insertBeforeId) => {
@@ -351,7 +431,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   };
   waitFor(() => {
     try {
-      const a = var_username == null ? void 0 : var_username.toLowerCase();
+      var_username == null ? void 0 : var_username.toLowerCase();
     } catch (e) {
       return false;
     }

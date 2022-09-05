@@ -9,7 +9,7 @@ interface Props {
 const ActivityLogEntry = ({ item }: Props) => {
   switch (item.type) {
     case TYPE_LOOT:
-      return <LootEntry content={item.content} />;
+      return <LootEntry content={item.content} timestamp={item.timestamp}/>;
     default:
       return null;
   }

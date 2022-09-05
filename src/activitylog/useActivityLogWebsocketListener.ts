@@ -1,23 +1,40 @@
-import {consumeWebSocketMessage, observeWebSocketMessage} from "../util/websocket";
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useLocalStorage } from "../util/localstorage/useLocalStorage";
-import {ActivityLogItem, ActivityLogSettings, LootItem} from "./types";
+import { ActivityLogItem, ActivityLogSettings, LootItem } from "./types";
+import {
+  consumeWebSocketMessage,
+  observeWebSocketMessage,
+  useWebsocket,
+} from "../util/websocket/useWebsocket";
 
-export const useActivityLogWebSocketListener = (settings: ActivityLogSettings) => {
+export const useActivityLogWebSocketListener = (
+  settings: ActivityLogSettings
+) => {
   const [list, setList] = useLocalStorage<ActivityLogItem[]>(
     "activity-log",
     [],
     "useActivityLogWebSocketListener"
   );
 
-  useEffect(() => {
-    const onMessage = settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage
-    onMessage("OPEN_LOOT_DIALOGUE", (data) => {
-      //OPEN_LOOT_DIALOGUE=none~images/junk.png~30 Junk~#cce6ff~images/stone.png~3 Stone~#cce6ff
-      const activityLogItem = lootDialogueParser(data);
-      setList((list) => [activityLogItem].concat(list));
-    });
-  }, []);
+  const onMessageFactory = useMemo(
+    () =>
+      settings.blockDialogues
+        ? consumeWebSocketMessage
+        : observeWebSocketMessage,
+    [settings.blockDialogues]
+  );
+
+  const onMessage = useMemo(
+    () =>
+      onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
+        //OPEN_LOOT_DIALOGUE=none~images/junk.png~30 Junk~#cce6ff~images/stone.png~3 Stone~#cce6ff
+        const activityLogItem = lootDialogueParser(data);
+        setList((list) => [activityLogItem].concat(list));
+      }),
+    [onMessageFactory]
+  );
+
+  useWebsocket(onMessage, 1000, "useActivityLogWebSocketListener");
 
   return list;
 };
