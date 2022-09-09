@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.4.2
+// @version      0.3.1
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -41,12 +41,12 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   }
   var React__default = /* @__PURE__ */ _interopDefaultLegacy(React$1);
   var ReactDOM__default = /* @__PURE__ */ _interopDefaultLegacy(ReactDOM);
-  const initialState$3 = {
+  const initialState$4 = {
     isOpen: false
   };
   const activityLogSlice = toolkit.createSlice({
     name: "Activity Log",
-    initialState: initialState$3,
+    initialState: initialState$4,
     reducers: {
       openActivityLog(state) {
         state.isOpen = true;
@@ -74,7 +74,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       onClick: () => dispatch(openActivityLog())
     }, "Activity Log")))));
   };
-  const initialState$2 = {
+  const initialState$3 = {
     subscribers: []
   };
   const removeSubscriber = (state, subscriber) => {
@@ -83,7 +83,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   };
   const localStorageSlice = toolkit.createSlice({
     name: "Local Storage",
-    initialState: initialState$2,
+    initialState: initialState$3,
     reducers: {
       subscribeToLocalStorage(state, action) {
         state = removeSubscriber(state, action.payload);
@@ -156,14 +156,12 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
-        visibility: "hidden",
-        width: "50px"
+        visibility: "hidden"
       }
     }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Loot"), /* @__PURE__ */ React.createElement("div", {
       title: formatDate(timestamp),
       style: {
-        color: "gray",
-        width: "50px"
+        color: "gray"
       }
     }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
       style: {
@@ -190,86 +188,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       alt: `${item.label}-image`
     }), item.label))));
   };
-  var ActivityLogItemType = /* @__PURE__ */ ((ActivityLogItemType2) => {
-    ActivityLogItemType2["LOOT"] = "LOOT";
-    ActivityLogItemType2["COOK"] = "COOK";
-    return ActivityLogItemType2;
-  })(ActivityLogItemType || {});
-  const CookEntry = ({ content, timestamp }) => {
-    return /* @__PURE__ */ React.createElement("div", {
-      style: {
-        borderBottom: "1px solid grey",
-        margin: "10px",
-        padding: "10px"
-      }
-    }, /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        width: "100%",
-        justifyContent: "space-around"
-      }
-    }, /* @__PURE__ */ React.createElement("div", {
-      style: {
-        width: "50px",
-        visibility: "hidden"
-      }
-    }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Cooking"), /* @__PURE__ */ React.createElement("div", {
-      title: formatDate(timestamp),
-      style: {
-        width: "50px",
-        color: "gray"
-      }
-    }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center"
-      }
-    }, /* @__PURE__ */ React.createElement("img", {
-      style: {
-        width: "50px",
-        height: "50px"
-      },
-      src: get_image(`images/${Cooking.getOven()}.png`),
-      alt: `${Cooking.getOven()}-image`
-    }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("img", {
-      style: {
-        width: "30px",
-        height: "30px"
-      },
-      src: get_image(`images/${content.name}.png`),
-      alt: `${content.name}-image`
-    }), content.cooked, " Cooked.", /* @__PURE__ */ React.createElement("span", {
-      className: "color-grey"
-    }, "(", content.cookedXp, " xp)")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("img", {
-      style: {
-        width: "30px",
-        height: "30px"
-      },
-      src: get_image(`images/${content.name.replace("cooked", "raw")}.png`),
-      alt: `${content.name.replace("cooked", "raw")}-image`,
-      className: "grayscale"
-    }), content.burnt, " Burnt.", /* @__PURE__ */ React.createElement("span", {
-      className: "color-grey"
-    }, "(", content.burntXp, " xp)"))));
-  };
-  const ActivityLogEntry = ({ item }) => {
-    switch (item.type) {
-      case ActivityLogItemType.LOOT:
-        return /* @__PURE__ */ React.createElement(LootEntry, {
-          content: item.content,
-          timestamp: item.timestamp
-        });
-      case ActivityLogItemType.COOK:
-        return /* @__PURE__ */ React.createElement(CookEntry, {
-          content: item.content,
-          timestamp: item.timestamp
-        });
-      default:
-        return null;
-    }
-  };
-  const initialState$1 = {
+  const initialState$2 = {
     consumers: []
   };
   const removeConsumer = (state, consumerId) => {
@@ -278,7 +197,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   };
   const websocketSlice = toolkit.createSlice({
     name: "Websocket",
-    initialState: initialState$1,
+    initialState: initialState$2,
     reducers: {
       addWebsocketConsumer(state, action) {
         removeConsumer(state, action.payload.id);
@@ -342,55 +261,53 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     const split = message.split("=");
     return { type: split[0], data: split[1] };
   };
+  const reduceToRecord = (list, mappers) => list.reduce((acc, cur, j) => {
+    const i = Math.floor(j / mappers.length);
+    if (!acc[i])
+      acc[i] = {};
+    mappers.forEach((mapper, index) => {
+      if (j % mappers.length === index) {
+        Object.assign(acc[i], mapper(cur));
+      }
+    });
+    return acc;
+  }, []).map((t) => t);
   const useActivityLogWebSocketListener = (settings) => {
     const [list, setList] = useLocalStorage("activity-log", [], "useActivityLogWebSocketListener");
-    const addItem = (item) => setList((list2) => [item].concat(list2).slice(0, 200));
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
-    const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
-      addItem(lootDialogueParser(data));
+    const onMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
+      const activityLogItem = lootDialogueParser(data);
+      setList((list2) => [activityLogItem].concat(list2));
     }), [onMessageFactory]);
-    useWebsocket(onLootMessage, 1e3, "useActivityLogWebSocketListener-Loot");
-    const onCookedMessage = React$1.useMemo(() => onMessageFactory("COOKING_RESULTS", (data) => {
-      addItem(cookDialogueParser(data));
-    }), [onMessageFactory]);
-    useWebsocket(onCookedMessage, 1e3, "useActivityLogWebSocketListener-Cook");
+    useWebsocket(onMessage, 1e3, "useActivityLogWebSocketListener");
     return list;
   };
-  const cookDialogueParser = (data) => {
-    const dataArray = data.split("~");
-    return {
-      type: ActivityLogItemType.COOK,
-      timestamp: new Date(),
-      content: {
-        name: dataArray[0],
-        cooked: Number(dataArray[1]),
-        cookedXp: Number(dataArray[2]),
-        burnt: Number(dataArray[3]),
-        burntXp: Number(dataArray[4])
-      }
-    };
-  };
+  const TYPE_LOOT = "LOOT";
   const lootDialogueParser = (data) => {
     const dataArray = data.split("~");
     return {
-      type: ActivityLogItemType.LOOT,
+      type: TYPE_LOOT,
       timestamp: new Date(),
       content: {
         extraData: dataArray[0],
-        items: dataArray.slice(1).reduce((acc, cur, j) => {
-          const i = Math.floor(j / 3);
-          if (!acc[i])
-            acc[i] = {};
-          if (j % 3 === 0)
-            acc[i].image = cur;
-          if (j % 3 === 1)
-            acc[i].label = cur;
-          if (j % 3 === 2)
-            acc[i].background = cur;
-          return acc;
-        }, []).map((item) => item)
+        items: reduceToRecord(dataArray.slice(1), [
+          (value) => ({ image: value }),
+          (value) => ({ label: value }),
+          (value) => ({ background: value })
+        ])
       }
     };
+  };
+  const ActivityLogEntry = ({ item }) => {
+    switch (item.type) {
+      case TYPE_LOOT:
+        return /* @__PURE__ */ React.createElement(LootEntry, {
+          content: item.content,
+          timestamp: item.timestamp
+        });
+      default:
+        return null;
+    }
   };
   const ActivityLog = ({}) => {
     const [settings, setSettings] = useLocalStorage("activity-log-settings", { blockDialogues: true }, "ActivityLog");
@@ -398,16 +315,6 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     const open = useIPFSelector(selectActivityLogIsOpen);
     const dispatch = useIPFDispatch();
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
-      onClick: () => dispatch(closeActivityLog()),
-      style: {
-        position: "absolute",
-        top: "0",
-        left: "0",
-        width: "100%",
-        height: "100%"
-      }
-    }, /* @__PURE__ */ React.createElement("div", {
-      onClick: (event) => event.stopPropagation(),
       style: {
         position: "absolute",
         top: "10vh",
@@ -455,7 +362,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       }
     }, list.map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
       item
-    }))))));
+    })))));
   };
   const ID_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const makeId = (length) => {
@@ -465,13 +372,13 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     }
     return text;
   };
-  const initialState = {
+  const initialState$1 = {
     foo: "bonn",
     bar: 0
   };
   const testSlice = toolkit.createSlice({
     name: "test",
-    initialState,
+    initialState: initialState$1,
     reducers: {
       testFoo(state, action) {
         state.foo = action.payload;
@@ -483,14 +390,39 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   });
   testSlice.actions;
   var testReducer = testSlice.reducer;
+  const initialState = {
+    isOpen: false
+  };
+  const overviewSlice = toolkit.createSlice({
+    name: "Overview",
+    initialState,
+    reducers: {
+      openOverview(state) {
+        state.isOpen = true;
+      },
+      closeOverview(state) {
+        state.isOpen = false;
+      }
+    }
+  });
+  const { openOverview, closeOverview } = overviewSlice.actions;
+  const selectOverviewIsOpen = (state) => state.overview.isOpen;
+  var overviewReducer = overviewSlice.reducer;
   const store = toolkit.configureStore({
     reducer: {
       test: testReducer,
       activityLog: activityLogReducer,
       localStorage: localStorageReducer,
-      websocket: websocketReducer
+      websocket: websocketReducer,
+      overview: overviewReducer
     }
   });
+  const hideElementById = (id) => {
+    const el = document.getElementById(id);
+    if (el && el.style) {
+      el.style.display = "none";
+    }
+  };
   const appendReact = (component, id, insertBeforeId) => {
     const parent = document.getElementById(id);
     if (!parent)
@@ -501,7 +433,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     if (insertBeforeId) {
       const insertBeforeElement = document.getElementById(insertBeforeId);
       if (insertBeforeElement) {
-        parent.insertBefore(insertBeforeElement, reactRoot);
+        parent.insertBefore(reactRoot, insertBeforeElement);
       } else {
         console.warn(`trying to insert before id ${insertBeforeId} but no element with that id was found`);
       }
@@ -522,9 +454,79 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     };
     wrapperFunc();
   };
+  const OverviewButton = ({}) => {
+    const dispatch = useIPFDispatch();
+    return /* @__PURE__ */ React.createElement("div", {
+      className: "hover hover-menu-bar-item",
+      role: "button",
+      onClick: () => {
+        hideElementById(Globals.currentPanel);
+        Globals.currentPanel = "";
+        dispatch(openOverview());
+      }
+    }, /* @__PURE__ */ React.createElement("img", {
+      style: {
+        marginRight: "10px"
+      },
+      src: get_image("images/community_center_1.png"),
+      className: "w20",
+      alt: "community_center_1"
+    }), /* @__PURE__ */ React.createElement("span", null, "OVERVIEW"));
+  };
+  const IPimg = ({ name, size }) => {
+    return /* @__PURE__ */ React.createElement("img", {
+      src: get_image(`images/${name}.png`),
+      alt: name,
+      className: size ? `w${size}` : void 0
+    });
+  };
+  const PotionDisplay = ({ potionName }) => {
+    const amount = Items.getItem(potionName);
+    const ingredients = Brewing.get_ingredients(potionName);
+    const makeable = reduceToRecord(ingredients, [
+      (value) => ({ item: value }),
+      (value) => ({ amount: Number(value) })
+    ]).reduce((acc, cur) => Math.min(Math.floor(Items.getItem(cur.item) / cur.amount), acc), Number.MAX_SAFE_INTEGER);
+    return amount || makeable ? /* @__PURE__ */ React.createElement("div", {
+      style: {
+        width: "50px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: potionName,
+      size: 30
+    }), /* @__PURE__ */ React.createElement("span", null, amount, " (", makeable, ")")) : null;
+  };
+  const BrewingOverview = ({}) => {
+    useIPFDispatch();
+    const potions = Object.keys(Brewing.POTION_TIMERS);
+    return /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex"
+      }
+    }, potions.map((potion) => /* @__PURE__ */ React.createElement(PotionDisplay, {
+      potionName: potion
+    })));
+  };
+  const OverviewPanel = ({}) => {
+    const dispatch = useIPFDispatch();
+    const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
+    const oldSwitchPanels = React$1.useRef(switch_panels);
+    React$1.useEffect(() => {
+      switch_panels = (id) => {
+        dispatch(closeOverview());
+        oldSwitchPanels.current(id);
+      };
+    }, []);
+    return overviewIsOpen ? /* @__PURE__ */ React.createElement(BrewingOverview, null) : null;
+  };
   const init = () => {
     appendReact(/* @__PURE__ */ React.createElement(IPFMenuBar, null), "menu-bar-buttons");
     appendReact(/* @__PURE__ */ React.createElement(ActivityLog, null), "content");
+    appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "menu-bar-keyitems");
+    appendReact(/* @__PURE__ */ React.createElement(OverviewPanel, null), "panels", "panel-keyitems");
   };
   waitFor(() => {
     try {

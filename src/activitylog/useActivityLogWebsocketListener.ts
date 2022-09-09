@@ -1,16 +1,8 @@
 import { useMemo } from "react";
 import { useLocalStorage } from "../util/localstorage/useLocalStorage";
-import {
-  ActivityLogItem,
-  ActivityLogItemType,
-  ActivityLogSettings,
-  LootItem,
-} from "./types";
-import {
-  consumeWebSocketMessage,
-  observeWebSocketMessage,
-  useWebsocket,
-} from "../util/websocket/useWebsocket";
+import { ActivityLogItem, ActivityLogItemType, ActivityLogSettings, LootItem ,} from "./types";
+import { consumeWebSocketMessage, observeWebSocketMessage, useWebsocket } from "../util/websocket/useWebsocket";
+import { reduceToRecord } from "../util/arrayUtils";
 
 export const useActivityLogWebSocketListener = (
   settings: ActivityLogSettings
@@ -78,17 +70,11 @@ const lootDialogueParser = (data: string): ActivityLogItem => {
     timestamp: new Date(),
     content: {
       extraData: dataArray[0],
-      items: dataArray
-        .slice(1)
-        .reduce<Partial<LootItem>[]>((acc, cur, j) => {
-          const i = Math.floor(j / 3);
-          if (!acc[i]) acc[i] = {};
-          if (j % 3 === 0) acc[i].image = cur;
-          if (j % 3 === 1) acc[i].label = cur;
-          if (j % 3 === 2) acc[i].background = cur;
-          return acc;
-        }, [])
-        .map((item) => item as LootItem),
+      items: reduceToRecord<LootItem>(dataArray.slice(1), [
+        value => ({image: value}),
+        value => ({label: value}),
+        value => ({background: value}),
+      ])
     },
   };
 };

@@ -32,7 +32,7 @@ export const appendReact = (
   if (insertBeforeId) {
     const insertBeforeElement = document.getElementById(insertBeforeId);
     if (insertBeforeElement) {
-      parent.insertBefore(insertBeforeElement, reactRoot);
+      parent.insertBefore(reactRoot, insertBeforeElement);
     } else {
       console.warn(
         `trying to insert before id ${insertBeforeId} but no element with that id was found`

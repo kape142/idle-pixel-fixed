@@ -1,29 +1,30 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../redux/store";
 
 interface ActivityLogState {
-    isOpen: boolean,
+  isOpen: boolean;
 }
 
 const initialState: ActivityLogState = {
-    isOpen: false
-}
+  isOpen: false,
+};
 
 const activityLogSlice = createSlice({
   name: "Activity Log",
   initialState: initialState,
   reducers: {
     openActivityLog(state) {
-        state.isOpen = true
+      state.isOpen = true;
     },
     closeActivityLog(state) {
-        state.isOpen = false
+      state.isOpen = false;
     },
-  }
+  },
 });
 
-export const { openActivityLog, closeActivityLog } = activityLogSlice.actions
+export const { openActivityLog, closeActivityLog } = activityLogSlice.actions;
 
-export const selectActivityLogIsOpen = (state: RootState) => state.activityLog.isOpen
+export const selectActivityLogIsOpen = (state: RootState) =>
+  state.activityLog.isOpen;
 
-export default activityLogSlice.reducer
+export default activityLogSlice.reducer;
