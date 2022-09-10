@@ -1,7 +1,7 @@
-import { openActivityLog } from "../activitylog/activityLogReducer";
 import { useIPFDispatch } from "../redux/hooks";
 import { openOverview } from "./overviewReducer";
 import { hideElementById } from "../util/domOperations";
+import IPimg from "../util/IPimg";
 
 interface Props {}
 
@@ -18,13 +18,12 @@ const OverviewButton = ({}: Props) => {
         dispatch(openOverview());
       }}
     >
-      <img
+      <IPimg
         style={{
-          marginRight: "10px"
+          marginRight: "10px",
         }}
-        src={get_image("images/community_center_1.png")}
+        name={"community_center_1"}
         className={"w20"}
-        alt={"community_center_1"}
       />
       <span>OVERVIEW</span>
     </div>

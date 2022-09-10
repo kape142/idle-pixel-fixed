@@ -32,6 +32,18 @@ var __spreadValues = (a, b) => {
   return a;
 };
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+var __objRest = (source, exclude) => {
+  var target = {};
+  for (var prop in source)
+    if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
+      target[prop] = source[prop];
+  if (source != null && __getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(source)) {
+      if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
+        target[prop] = source[prop];
+    }
+  return target;
+};
 (function(global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? factory(require("@reduxjs/toolkit"), require("react-redux"), require("react"), require("react-dom")) : typeof define === "function" && define.amd ? define(["@reduxjs/toolkit", "react-redux", "react", "react-dom"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.RTK, global.ReactRedux, global.React, global.ReactDOM));
 })(this, function(toolkit, reactRedux, React$1, ReactDOM) {
@@ -454,6 +466,30 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     };
     wrapperFunc();
   };
+  const removeEmpty = (it) => it !== void 0 && it !== null;
+  const toggleInArray = (array, item) => {
+    const i = array.indexOf(item);
+    return i === -1 ? array.concat(item) : array.slice(0, i).concat(array.slice(i + 1));
+  };
+  const classNames = (classes, ...classList) => [
+    Object.keys(classes).reduce((acc, cur) => `${acc}${classes[cur] ? ` ${cur}` : ""}`, "").trim()
+  ].concat(classList.filter(removeEmpty)).join(" ");
+  const IPimg = (_a) => {
+    var _b = _a, {
+      name,
+      size,
+      className
+    } = _b, rest = __objRest(_b, [
+      "name",
+      "size",
+      "className"
+    ]);
+    return /* @__PURE__ */ React.createElement("img", __spreadValues({
+      src: get_image(`images/${name}.png`),
+      alt: name,
+      className: classNames({ [`w${size}`]: !!size }, className)
+    }, rest));
+  };
   const OverviewButton = ({}) => {
     const dispatch = useIPFDispatch();
     return /* @__PURE__ */ React.createElement("div", {
@@ -464,51 +500,73 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
         Globals.currentPanel = "";
         dispatch(openOverview());
       }
-    }, /* @__PURE__ */ React.createElement("img", {
+    }, /* @__PURE__ */ React.createElement(IPimg, {
       style: {
         marginRight: "10px"
       },
-      src: get_image("images/community_center_1.png"),
-      className: "w20",
-      alt: "community_center_1"
+      name: "community_center_1",
+      className: "w20"
     }), /* @__PURE__ */ React.createElement("span", null, "OVERVIEW"));
   };
-  const IPimg = ({ name, size }) => {
-    return /* @__PURE__ */ React.createElement("img", {
-      src: get_image(`images/${name}.png`),
-      alt: name,
-      className: size ? `w${size}` : void 0
-    });
-  };
-  const PotionDisplay = ({ potionName }) => {
+  const PotionDisplay = ({ potionName, toggle }) => {
     const amount = Items.getItem(potionName);
     const ingredients = Brewing.get_ingredients(potionName);
     const makeable = reduceToRecord(ingredients, [
       (value) => ({ item: value }),
       (value) => ({ amount: Number(value) })
     ]).reduce((acc, cur) => Math.min(Math.floor(Items.getItem(cur.item) / cur.amount), acc), Number.MAX_SAFE_INTEGER);
-    return amount || makeable ? /* @__PURE__ */ React.createElement("div", {
+    return /* @__PURE__ */ React.createElement("div", {
       style: {
         width: "50px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, toggle && /* @__PURE__ */ React.createElement(IPimg, {
+      role: "button",
+      name: "stardust",
+      onClick: toggle
+    }), /* @__PURE__ */ React.createElement(IPimg, {
       name: potionName,
-      size: 30
-    }), /* @__PURE__ */ React.createElement("span", null, amount, " (", makeable, ")")) : null;
+      size: 30,
+      title: Items.get_pretty_item_name(potionName)
+    }), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement("button", {
+      title: `max ${makeable}`,
+      style: {
+        fontSize: "25px",
+        fontWeight: "900",
+        borderRadius: "100px",
+        width: "30px",
+        display: "flex",
+        alignContent: "center",
+        backgroundColor: "unset",
+        border: "unset"
+      }
+    }, /* @__PURE__ */ React.createElement("span", null, "+")));
   };
   const BrewingOverview = ({}) => {
     useIPFDispatch();
+    const [edit, setEdit] = React$1.useState(false);
     const potions = Object.keys(Brewing.POTION_TIMERS);
+    const [favorites, setFavorites] = useLocalStorage("brewing-favorites", potions, "PotionDisplay");
+    const toggle = (potionName) => () => {
+      setFavorites((favs) => toggleInArray(favs, potionName));
+    };
     return /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex"
       }
-    }, potions.map((potion) => /* @__PURE__ */ React.createElement(PotionDisplay, {
-      potionName: potion
-    })));
+    }, /* @__PURE__ */ React.createElement("button", {
+      onClick: () => setEdit((edit2) => !edit2),
+      type: "button"
+    }, "Edit"), (edit ? potions : favorites).map((potion) => /* @__PURE__ */ React.createElement("div", {
+      style: {
+        opacity: favorites.includes(potion) ? 1 : 0.5
+      }
+    }, /* @__PURE__ */ React.createElement(PotionDisplay, {
+      potionName: potion,
+      toggle: edit ? toggle(potion) : void 0
+    }))));
   };
   const OverviewPanel = ({}) => {
     const dispatch = useIPFDispatch();
