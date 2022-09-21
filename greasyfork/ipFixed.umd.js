@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.3.1
+// @version      0.4.0
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -170,12 +170,14 @@ var __objRest = (source, exclude) => {
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
-        visibility: "hidden"
+        visibility: "hidden",
+        width: "5em"
       }
     }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Loot"), /* @__PURE__ */ React.createElement("div", {
       title: formatDate(timestamp),
       style: {
-        color: "gray"
+        color: "gray",
+        width: "5em"
       }
     }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
       style: {
@@ -205,6 +207,103 @@ var __objRest = (source, exclude) => {
         fontSize: "1.6em"
       }
     }, item.label)))));
+  };
+  var ActivityLogItemType = /* @__PURE__ */ ((ActivityLogItemType2) => {
+    ActivityLogItemType2["LOOT"] = "LOOT";
+    ActivityLogItemType2["COOK"] = "COOK";
+    return ActivityLogItemType2;
+  })(ActivityLogItemType || {});
+  const removeEmpty = (it) => it !== void 0 && it !== null;
+  const toggleInArray = (array, item) => {
+    const i = array.indexOf(item);
+    return i === -1 ? array.concat(item) : array.slice(0, i).concat(array.slice(i + 1));
+  };
+  const classNames = (classes, ...classList) => [
+    Object.keys(classes).reduce((acc, cur) => `${acc}${classes[cur] ? ` ${cur}` : ""}`, "").trim()
+  ].concat(classList.filter(removeEmpty)).join(" ");
+  const IPimg = (_a) => {
+    var _b = _a, {
+      name,
+      size,
+      className,
+      style
+    } = _b, rest = __objRest(_b, [
+      "name",
+      "size",
+      "className",
+      "style"
+    ]);
+    return /* @__PURE__ */ React.createElement("img", __spreadValues({
+      src: get_image(`images/${name}.png`),
+      alt: name,
+      className: classNames({ [`w${size}`]: !!size }, className),
+      style: __spreadValues({ objectFit: "cover" }, style)
+    }, rest));
+  };
+  const CookEntry = ({ content, timestamp }) => {
+    return /* @__PURE__ */ React.createElement("div", {
+      style: {
+        borderBottom: "1px solid grey",
+        margin: "1em",
+        padding: "1em",
+        width: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-around",
+        fontSize: "1.6em"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        width: "5em",
+        visibility: "hidden"
+      }
+    }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Cooking"), /* @__PURE__ */ React.createElement("div", {
+      title: formatDate(timestamp),
+      style: {
+        width: "5em",
+        color: "gray"
+      }
+    }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        fontSize: "1.6em"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: Cooking.getOven(),
+      size: 50
+    }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(IPimg, {
+      name: content.name,
+      size: 30
+    }), content.cooked, " Cooked.", /* @__PURE__ */ React.createElement("span", {
+      className: "color-grey"
+    }, "(", content.cookedXp, " xp)")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(IPimg, {
+      name: content.name.replace("cooked", "raw"),
+      size: 30,
+      className: "grayscale"
+    }), content.burnt, " Burnt.", /* @__PURE__ */ React.createElement("span", {
+      className: "color-grey"
+    }, "(", content.burntXp, " xp)"))));
+  };
+  const ActivityLogEntry = ({ item }) => {
+    switch (item.type) {
+      case ActivityLogItemType.LOOT:
+        return /* @__PURE__ */ React.createElement(LootEntry, {
+          content: item.content,
+          timestamp: item.timestamp
+        });
+      case ActivityLogItemType.COOK:
+        return /* @__PURE__ */ React.createElement(CookEntry, {
+          content: item.content,
+          timestamp: item.timestamp
+        });
+      default:
+        return null;
+    }
   };
   const initialState$3 = {
     consumers: []
@@ -302,18 +401,36 @@ var __objRest = (source, exclude) => {
   const useActivityLogWebSocketListener = (settings) => {
     const [list, setList] = useLocalStorage("activity-log", [], "useActivityLogWebSocketListener");
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
-    const onMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
+    const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
       const activityLogItem = lootDialogueParser(data);
       setList((list2) => [activityLogItem].concat(list2));
     }), [onMessageFactory]);
-    useWebsocket(onMessage, 1e3, "useActivityLogWebSocketListener");
+    useWebsocket(onLootMessage, 1e3, "useActivityLogWebSocketListener-Loot");
+    const onCookedMessage = React$1.useMemo(() => onMessageFactory("COOKING_RESULTS", (data) => {
+      const activityLogItem = cookDialogueParser(data);
+      setList((list2) => [activityLogItem].concat(list2));
+    }), [onMessageFactory]);
+    useWebsocket(onCookedMessage, 1e3, "useActivityLogWebSocketListener-Cook");
     return list;
   };
-  const TYPE_LOOT = "LOOT";
+  const cookDialogueParser = (data) => {
+    const dataArray = data.split("~");
+    return {
+      type: ActivityLogItemType.COOK,
+      timestamp: new Date(),
+      content: {
+        name: dataArray[0],
+        cooked: Number(dataArray[1]),
+        cookedXp: Number(dataArray[2]),
+        burnt: Number(dataArray[3]),
+        burntXp: Number(dataArray[4])
+      }
+    };
+  };
   const lootDialogueParser = (data) => {
     const dataArray = data.split("~");
     return {
-      type: TYPE_LOOT,
+      type: ActivityLogItemType.LOOT,
       timestamp: new Date(),
       content: {
         extraData: dataArray[0],
@@ -324,17 +441,6 @@ var __objRest = (source, exclude) => {
         ])
       }
     };
-  };
-  const ActivityLogEntry = ({ item }) => {
-    switch (item.type) {
-      case TYPE_LOOT:
-        return /* @__PURE__ */ React.createElement(LootEntry, {
-          content: item.content,
-          timestamp: item.timestamp
-        });
-      default:
-        return null;
-    }
   };
   const ActivityLog = ({}) => {
     const [settings, setSettings] = useLocalStorage("activity-log-settings", { blockDialogues: true }, "ActivityLog");
@@ -529,33 +635,6 @@ var __objRest = (source, exclude) => {
       }
     };
     wrapperFunc();
-  };
-  const removeEmpty = (it) => it !== void 0 && it !== null;
-  const toggleInArray = (array, item) => {
-    const i = array.indexOf(item);
-    return i === -1 ? array.concat(item) : array.slice(0, i).concat(array.slice(i + 1));
-  };
-  const classNames = (classes, ...classList) => [
-    Object.keys(classes).reduce((acc, cur) => `${acc}${classes[cur] ? ` ${cur}` : ""}`, "").trim()
-  ].concat(classList.filter(removeEmpty)).join(" ");
-  const IPimg = (_a) => {
-    var _b = _a, {
-      name,
-      size,
-      className,
-      style
-    } = _b, rest = __objRest(_b, [
-      "name",
-      "size",
-      "className",
-      "style"
-    ]);
-    return /* @__PURE__ */ React.createElement("img", __spreadValues({
-      src: get_image(`images/${name}.png`),
-      alt: name,
-      className: classNames({ [`w${size}`]: !!size }, className),
-      style: __spreadValues({ objectFit: "cover" }, style)
-    }, rest));
   };
   const OverviewButton = ({}) => {
     const dispatch = useIPFDispatch();
@@ -879,11 +958,11 @@ var __objRest = (source, exclude) => {
       }
     ];
   };
-  const id$2 = "WoodcuttingOverview";
+  const id$3 = "WoodcuttingOverview";
   const WoodcuttingOverview = () => {
     useIPFDispatch();
     const patches = 3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
-    const patchData = useTreePatchesObserver(id$2);
+    const patchData = useTreePatchesObserver(id$3);
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const plotClick = (index) => {
       const { stage, setType, setStage } = patchData[index];
@@ -1173,9 +1252,9 @@ var __objRest = (source, exclude) => {
       }
     }, stage === 4 ? "READY" : timer > 0 ? format_time(timer) : "")) : null);
   };
-  const id$1 = "SeedDisplay";
+  const id$2 = "SeedDisplay";
   const SeedDisplay = ({ seed, seedClick, nextPlot }) => {
-    const [amount, setAmount] = useNumberItemObserver(seed, id$1);
+    const [amount, setAmount] = useNumberItemObserver(seed, id$2);
     const onClick = () => {
       if (nextPlot > 0 && amount > 0) {
         seedClick();
@@ -1353,12 +1432,12 @@ var __objRest = (source, exclude) => {
       bonemealCost: 180
     }
   };
-  const id = "FarmingOverview";
+  const id$1 = "FarmingOverview";
   const FarmingOverview = () => {
     useIPFDispatch();
     const seeds = Object.keys(SEEDS);
     const patches = 3 + Math.sign(Number(Items.getItem("donor_farm_patches_timestamp"))) * 2;
-    const patchData = useFarmPatchesObserver(id);
+    const patchData = useFarmPatchesObserver(id$1);
     const nextPlot = patchData.map((patch) => patch.stage).findIndex((value, index) => value === 0 && index < patches) + 1;
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const seedClick = (seed) => {
@@ -1417,6 +1496,89 @@ var __objRest = (source, exclude) => {
       key: i + 1
     }))));
   };
+  const GatheringBagDisplay = ({ area }) => {
+    const itemName = `gathering_loot_bag_${area}`;
+    const [amount, setAmount] = useNumberItemObserver(itemName, `GatheringBagDisplay-${area}`);
+    const onClick = (event) => {
+      let making = amount;
+      if (event.ctrlKey) {
+        making = Math.min(5, making);
+      } else if (event.shiftKey) {
+        making = Math.floor(making / 2);
+      }
+      if (making > 0) {
+        setAmount(amount - making);
+        sendMessage("OPEN_GATHERING_LOOT", area, making);
+      }
+    };
+    const unselectable = amount <= 0;
+    const formattedAmount = amount < 1e3 ? `${amount}` : amount < 1e6 ? `${(amount / 1e3).toFixed(5 - Math.floor(Math.log10(amount)))}k` : `${(amount / 1e6).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
+    return /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      role: "button",
+      name: itemName,
+      size: 30,
+      style: unselectable ? {
+        opacity: 0.5,
+        cursor: "default"
+      } : void 0,
+      onClick: unselectable ? void 0 : onClick,
+      title: Items.get_pretty_item_name(itemName)
+    }), /* @__PURE__ */ React.createElement("span", null, formattedAmount));
+  };
+  const AREAS = {
+    mines: {
+      image: "mine"
+    },
+    fields: {
+      image: "field"
+    },
+    forest: {
+      image: "forest"
+    },
+    fishing_pond: {
+      image: "fishing_pond"
+    },
+    kitchen: {
+      image: "kitchen"
+    },
+    gem_mine: {
+      image: "gem_mine"
+    }
+  };
+  const id = "GatheringOverview";
+  const GatheringOverview = () => {
+    const areas = Object.keys(AREAS);
+    useItemObserver("current_gathering_area", id);
+    return /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        height: "250px",
+        width: "300px",
+        gap: "10px",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1px solid black"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-evenly"
+      }
+    }, areas.map((area) => /* @__PURE__ */ React.createElement(GatheringBagDisplay, {
+      area,
+      key: area
+    }))));
+  };
   const OverviewPanel = ({}) => {
     const dispatch = useIPFDispatch();
     const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
@@ -1464,7 +1626,7 @@ var __objRest = (source, exclude) => {
         alignItems: "center",
         width: "50%%"
       }
-    }, /* @__PURE__ */ React.createElement(BrewingOverview, null)), /* @__PURE__ */ React.createElement("div", {
+    }, /* @__PURE__ */ React.createElement(BrewingOverview, null), /* @__PURE__ */ React.createElement(GatheringOverview, null)), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",

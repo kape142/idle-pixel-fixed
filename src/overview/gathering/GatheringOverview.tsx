@@ -1,7 +1,5 @@
-import { useIPFDispatch } from "../../redux/hooks";
-import IPimg from "../../util/IPimg";
-import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
-import { useState } from "react";
+import { useItemObserver } from "../setItems/useSetItemsObserver";
+import GatheringBagDisplay from "./GatheringBagDisplay";
 
 const AREAS = {
   mines: {
@@ -20,19 +18,18 @@ const AREAS = {
     image: "kitchen",
   },
   gem_mine: {
-    image: "gem_mine"
-  }
+    image: "gem_mine",
+  },
 };
 
+const id = "GatheringOverview";
 const GatheringOverview = () => {
-  const dispatch = useIPFDispatch();
-  const areas = Object.keys(AREAS)
+  const areas = Object.keys(AREAS);
 
-  const [oilIn, setOilIn] = useNumberItemObserver("oil_in", "MiningOverview");
-  const [oilOut, setOilOut] = useState(Items.getItem("oil_out"));
-
-  const changeOilOut = (change: number) =>
-    setOilOut((oilOut) => oilOut + change);
+  const [currentGatheringArea, setCurrentGatheringArea] = useItemObserver(
+    "current_gathering_area",
+    id
+  );
 
   return (
     <div
@@ -47,8 +44,6 @@ const GatheringOverview = () => {
         border: "1px solid black",
       }}
     >
-      <IPimg name={"oil"} size={50} style={{}} />
-      <span>{`+${oilIn} / -${oilOut}`}</span>
       <div
         style={{
           display: "flex",
@@ -56,6 +51,9 @@ const GatheringOverview = () => {
           justifyContent: "space-evenly",
         }}
       >
+        {areas.map((area) => (
+          <GatheringBagDisplay area={area} key={area} />
+        ))}
       </div>
     </div>
   );

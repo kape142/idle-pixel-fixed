@@ -10,6 +10,7 @@ import { useLocalStorage } from "../util/localstorage/useLocalStorage";
 import { ActivityLogItem } from "../activitylog/types";
 import ActivityLogEntry from "../activitylog/ActivityLogEntry";
 import FarmingOverview from "./farming/FarmingOverview";
+import GatheringOverview from "./gathering/GatheringOverview";
 
 interface Props {}
 
@@ -26,7 +27,7 @@ const OverviewPanel = ({}: Props) => {
     };
   }, []);
 
-  const [list, _] = useLocalStorage<ActivityLogItem[]>(
+  const [list] = useLocalStorage<ActivityLogItem[]>(
     "activity-log",
     [],
     "OverviewPanel"
@@ -45,7 +46,7 @@ const OverviewPanel = ({}: Props) => {
           display: "flex",
           flexDirection: "column",
           gap: "15px",
-          width: "75%"
+          width: "75%",
         }}
       >
         <div
@@ -77,6 +78,7 @@ const OverviewPanel = ({}: Props) => {
             }}
           >
             <BrewingOverview />
+            <GatheringOverview />
           </div>
           <div
             style={{

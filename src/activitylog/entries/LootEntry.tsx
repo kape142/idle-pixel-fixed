@@ -27,7 +27,7 @@ const LootEntry = ({ content, timestamp }: Props) => {
         <div
           style={{
             visibility: "hidden",
-            width: "50px",
+            width: "5em",
           }}
         >
           padding
@@ -37,7 +37,7 @@ const LootEntry = ({ content, timestamp }: Props) => {
           title={formatDate(timestamp)}
           style={{
             color: "gray",
-            width: "50px",
+            width: "5em",
           }}
         >
           {timeSince(timestamp)}

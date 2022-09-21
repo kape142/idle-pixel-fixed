@@ -1,5 +1,6 @@
 import { CookContent } from "../types";
 import { formatDate, timeSince } from "../../util/timeUtils";
+import IPimg from "../../util/IPimg";
 
 interface Props {
   content: CookContent;
@@ -11,8 +12,9 @@ const CookEntry = ({ content, timestamp }: Props) => {
     <div
       style={{
         borderBottom: "1px solid grey",
-        margin: "10px",
-        padding: "10px",
+        margin: "1em",
+        padding: "1em",
+        width: "100%",
       }}
     >
       <div
@@ -20,11 +22,12 @@ const CookEntry = ({ content, timestamp }: Props) => {
           display: "flex",
           width: "100%",
           justifyContent: "space-around",
+          fontSize: "1.6em",
         }}
       >
         <div
           style={{
-            width: "50px",
+            width: "5em",
             visibility: "hidden",
           }}
         >
@@ -34,7 +37,7 @@ const CookEntry = ({ content, timestamp }: Props) => {
         <div
           title={formatDate(timestamp)}
           style={{
-            width: "50px",
+            width: "5em",
             color: "gray",
           }}
         >
@@ -46,38 +49,19 @@ const CookEntry = ({ content, timestamp }: Props) => {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+          fontSize: "1.6em",
         }}
       >
-        <img
-          style={{
-            width: "50px",
-            height: "50px",
-          }}
-          src={get_image(`images/${Cooking.getOven()}.png`)}
-          alt={`${Cooking.getOven()}-image`}
-        />
+        <IPimg name={Cooking.getOven()} size={50} />
         <div>
-          <img
-            style={{
-              width: "30px",
-              height: "30px",
-            }}
-            src={get_image(`images/${content.name}.png`)}
-            alt={`${content.name}-image`}
-          />
+          <IPimg name={content.name} size={30} />
           {content.cooked} Cooked.
           <span className={"color-grey"}>({content.cookedXp} xp)</span>
         </div>
         <div>
-          <img
-            style={{
-              width: "30px",
-              height: "30px",
-            }}
-            src={get_image(
-              `images/${content.name.replace("cooked", "raw")}.png`
-            )}
-            alt={`${content.name.replace("cooked", "raw")}-image`}
+          <IPimg
+            name={content.name.replace("cooked", "raw")}
+            size={30}
             className={"grayscale"}
           />
           {content.burnt} Burnt.
