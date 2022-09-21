@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.3.1
+// @version      0.4.0
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -156,12 +156,14 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
-        visibility: "hidden"
+        visibility: "hidden",
+        width: "50px"
       }
     }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Loot"), /* @__PURE__ */ React.createElement("div", {
       title: formatDate(timestamp),
       style: {
-        color: "gray"
+        color: "gray",
+        width: "50px"
       }
     }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
       style: {
@@ -187,6 +189,85 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       src: get_image(item.image),
       alt: `${item.label}-image`
     }), item.label))));
+  };
+  var ActivityLogItemType = /* @__PURE__ */ ((ActivityLogItemType2) => {
+    ActivityLogItemType2["LOOT"] = "LOOT";
+    ActivityLogItemType2["COOK"] = "COOK";
+    return ActivityLogItemType2;
+  })(ActivityLogItemType || {});
+  const CookEntry = ({ content, timestamp }) => {
+    return /* @__PURE__ */ React.createElement("div", {
+      style: {
+        borderBottom: "1px solid grey",
+        margin: "10px",
+        padding: "10px"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-around"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        width: "50px",
+        visibility: "hidden"
+      }
+    }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Cooking"), /* @__PURE__ */ React.createElement("div", {
+      title: formatDate(timestamp),
+      style: {
+        width: "50px",
+        color: "gray"
+      }
+    }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement("img", {
+      style: {
+        width: "50px",
+        height: "50px"
+      },
+      src: get_image(`images/${Cooking.getOven()}.png`),
+      alt: `${Cooking.getOven()}-image`
+    }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("img", {
+      style: {
+        width: "30px",
+        height: "30px"
+      },
+      src: get_image(`images/${content.name}.png`),
+      alt: `${content.name}-image`
+    }), content.cooked, " Cooked.", /* @__PURE__ */ React.createElement("span", {
+      className: "color-grey"
+    }, "(", content.cookedXp, " xp)")), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("img", {
+      style: {
+        width: "30px",
+        height: "30px"
+      },
+      src: get_image(`images/${content.name.replace("cooked", "raw")}.png`),
+      alt: `${content.name.replace("cooked", "raw")}-image`,
+      className: "grayscale"
+    }), content.burnt, " Burnt.", /* @__PURE__ */ React.createElement("span", {
+      className: "color-grey"
+    }, "(", content.burntXp, " xp)"))));
+  };
+  const ActivityLogEntry = ({ item }) => {
+    switch (item.type) {
+      case ActivityLogItemType.LOOT:
+        return /* @__PURE__ */ React.createElement(LootEntry, {
+          content: item.content,
+          timestamp: item.timestamp
+        });
+      case ActivityLogItemType.COOK:
+        return /* @__PURE__ */ React.createElement(CookEntry, {
+          content: item.content,
+          timestamp: item.timestamp
+        });
+      default:
+        return null;
+    }
   };
   const initialState$1 = {
     consumers: []
@@ -264,18 +345,36 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   const useActivityLogWebSocketListener = (settings) => {
     const [list, setList] = useLocalStorage("activity-log", [], "useActivityLogWebSocketListener");
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
-    const onMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
+    const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
       const activityLogItem = lootDialogueParser(data);
       setList((list2) => [activityLogItem].concat(list2));
     }), [onMessageFactory]);
-    useWebsocket(onMessage, 1e3, "useActivityLogWebSocketListener");
+    useWebsocket(onLootMessage, 1e3, "useActivityLogWebSocketListener-Loot");
+    const onCookedMessage = React$1.useMemo(() => onMessageFactory("COOKING_RESULTS", (data) => {
+      const activityLogItem = cookDialogueParser(data);
+      setList((list2) => [activityLogItem].concat(list2));
+    }), [onMessageFactory]);
+    useWebsocket(onCookedMessage, 1e3, "useActivityLogWebSocketListener-Cook");
     return list;
   };
-  const TYPE_LOOT = "LOOT";
+  const cookDialogueParser = (data) => {
+    const dataArray = data.split("~");
+    return {
+      type: ActivityLogItemType.COOK,
+      timestamp: new Date(),
+      content: {
+        name: dataArray[0],
+        cooked: Number(dataArray[1]),
+        cookedXp: Number(dataArray[2]),
+        burnt: Number(dataArray[3]),
+        burntXp: Number(dataArray[4])
+      }
+    };
+  };
   const lootDialogueParser = (data) => {
     const dataArray = data.split("~");
     return {
-      type: TYPE_LOOT,
+      type: ActivityLogItemType.LOOT,
       timestamp: new Date(),
       content: {
         extraData: dataArray[0],
@@ -293,17 +392,6 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
         }, []).map((item) => item)
       }
     };
-  };
-  const ActivityLogEntry = ({ item }) => {
-    switch (item.type) {
-      case TYPE_LOOT:
-        return /* @__PURE__ */ React.createElement(LootEntry, {
-          content: item.content,
-          timestamp: item.timestamp
-        });
-      default:
-        return null;
-    }
   };
   const ActivityLog = ({}) => {
     const [settings, setSettings] = useLocalStorage("activity-log-settings", { blockDialogues: true }, "ActivityLog");

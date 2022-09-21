@@ -1,11 +1,7 @@
-import { useMemo } from "react";
-import { useLocalStorage } from "../util/localstorage/useLocalStorage";
-import { ActivityLogItem, ActivityLogSettings, LootItem } from "./types";
-import {
-  consumeWebSocketMessage,
-  observeWebSocketMessage,
-  useWebsocket,
-} from "../util/websocket/useWebsocket";
+import {useMemo} from "react";
+import {useLocalStorage} from "../util/localstorage/useLocalStorage";
+import {ActivityLogItem, ActivityLogItemType, ActivityLogSettings, LootItem} from "./types";
+import {consumeWebSocketMessage, observeWebSocketMessage, useWebsocket,} from "../util/websocket/useWebsocket";
 
 export const useActivityLogWebSocketListener = (
   settings: ActivityLogSettings
@@ -24,7 +20,7 @@ export const useActivityLogWebSocketListener = (
     [settings.blockDialogues]
   );
 
-  const onMessage = useMemo(
+  const onLootMessage = useMemo(
     () =>
       onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
         //OPEN_LOOT_DIALOGUE=none~images/junk.png~30 Junk~#cce6ff~images/stone.png~3 Stone~#cce6ff
@@ -33,18 +29,43 @@ export const useActivityLogWebSocketListener = (
       }),
     [onMessageFactory]
   );
+  useWebsocket(onLootMessage, 1000, "useActivityLogWebSocketListener-Loot");
 
-  useWebsocket(onMessage, 1000, "useActivityLogWebSocketListener");
+  const onCookedMessage = useMemo(
+    () =>
+      onMessageFactory("COOKING_RESULTS", (data) => {
+        //COOKING_RESULTS=cooked_shrimp~1~50~0~0
+        // 1 cooked 50 xp, 0 burnt 0 xp
+        const activityLogItem = cookDialogueParser(data);
+        setList((list) => [activityLogItem].concat(list));
+      }),
+    [onMessageFactory]
+  );
+  useWebsocket(onCookedMessage, 1000, "useActivityLogWebSocketListener-Cook");
 
   return list;
 };
 
-export const TYPE_LOOT = "LOOT";
+const cookDialogueParser = (data: string): ActivityLogItem => {
+  const dataArray = data.split("~");
+  return {
+    type: ActivityLogItemType.COOK,
+    timestamp: new Date(),
+    content: {
+      name: dataArray[0],
+      cooked: Number(dataArray[1]),
+      cookedXp: Number(dataArray[2]),
+      burnt: Number(dataArray[3]),
+      burntXp: Number(dataArray[4]),
+    },
+  };
+}
+
 
 const lootDialogueParser = (data: string): ActivityLogItem => {
   const dataArray = data.split("~");
   return {
-    type: TYPE_LOOT,
+    type: ActivityLogItemType.LOOT,
     timestamp: new Date(),
     content: {
       extraData: dataArray[0],
