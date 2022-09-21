@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.4.0
+// @version      0.4.1
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -399,6 +399,16 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     const open = useIPFSelector(selectActivityLogIsOpen);
     const dispatch = useIPFDispatch();
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
+      onClick: () => dispatch(closeActivityLog()),
+      style: {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      onClick: (event) => event.stopPropagation(),
       style: {
         position: "absolute",
         top: "10vh",
@@ -446,7 +456,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       }
     }, list.map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
       item
-    })))));
+    }))))));
   };
   const ID_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const makeId = (length) => {
