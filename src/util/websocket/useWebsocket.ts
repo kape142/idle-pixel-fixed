@@ -74,6 +74,17 @@ export const consumeWebSocketMessage =
     return ev;
   };
 
+export const replaceWebSocketMessage =
+  (type: string, replace: (data: string) => string) =>
+  (ev: MessageEvent<string>) => {
+    const { type: foundType, data } = websocketMessageSplit(ev.data);
+    if (type === foundType) {
+      const newData = replace(data);
+      return Object.assign({}, ev, { data: newData });
+    }
+    return ev;
+  };
+
 interface WebsocketMessageSplit {
   type: string;
   data: string;
@@ -85,3 +96,6 @@ export const websocketMessageSplit = (
   const split = message.split("=");
   return { type: split[0], data: split[1] };
 };
+
+export const sendMessage = (type: string, ...values: (string | number)[]) =>
+  websocket.connected_socket.send(`${type}=${values.join("~")}`);

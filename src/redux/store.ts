@@ -4,6 +4,7 @@ import localStorageReducer from "../util/localstorage/localStorageReducer";
 import testReducer from "./testReducer";
 import websocketReducer from "../util/websocket/websocketReducer";
 import overviewReducer from "../overview/overviewReducer";
+import setItemsReducer from "../overview/setItems/setItemsReducer";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     localStorage: localStorageReducer,
     websocket: websocketReducer,
     overview: overviewReducer,
+    setItems: setItemsReducer,
   },
 });
 

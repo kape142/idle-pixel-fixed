@@ -1,6 +1,6 @@
 export const reduceToRecord = <T>(
   list: string[],
-  mappers: ((value: string) => Partial<T>)[]
+  mappers: ((value: string) => Partial<T>)[],
 ) =>
   list
     .reduce<Partial<T>[]>((acc, cur, j) => {

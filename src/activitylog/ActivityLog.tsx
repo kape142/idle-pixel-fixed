@@ -54,9 +54,7 @@ const ActivityLog = ({}: Props) => {
             <div>
               <h2 className="color-grey">Activity log</h2>
               <button
-                title={
-                  "Toggle showing loot pop-ups. O means they will appear, Ø means they are blocked."
-                }
+                title={"Toggle showing loot pop-ups. O means they will appear, Ø means they are blocked."}
                 type="button"
                 onClick={() =>
                   setSettings((set) => ({
@@ -94,6 +92,8 @@ const ActivityLog = ({}: Props) => {
               style={{
                 height: "calc(85vh - 120px)",
                 overflowY: "auto",
+                overflowX: "hidden",
+                fontSize: "10px",
               }}
             >
               {list.map((item) => (

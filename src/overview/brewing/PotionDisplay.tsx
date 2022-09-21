@@ -1,28 +1,79 @@
 import IPimg from "../../util/IPimg";
 import { reduceToRecord } from "../../util/arrayUtils";
-
-interface Props {
-  potionName: string;
-  toggle?: () => void;
-}
+import { BrewingView } from "./BrewingOverview";
+import { sendMessage } from "../../util/websocket/useWebsocket";
+import React, { MouseEvent } from "react";
+import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
+import { updateTimer } from "../../util/domOperations";
 
 interface Ingredient {
   item: string;
   amount: number;
 }
 
-const PotionDisplay = ({ potionName, toggle }: Props) => {
-  const amount = Items.getItem(potionName);
+interface Props {
+  potionName: string;
+  toggle: () => void;
+  view: BrewingView;
+  opacity: number;
+}
 
-  const ingredients = Brewing.get_ingredients(potionName);
-  const makeable = reduceToRecord<Ingredient>(ingredients, [
-    (value) => ({ item: value }),
-    (value) => ({ amount: Number(value) }),
-  ]).reduce(
-    (acc, cur) =>
-      Math.min(Math.floor(Items.getItem(cur.item) / cur.amount), acc),
-    Number.MAX_SAFE_INTEGER
+const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
+  const [amount, setAmount] = useNumberItemObserver(
+    potionName,
+    "PotionDisplay"
   );
+  const [timer, setTimer] = useNumberItemObserver(
+    `${potionName}_timer`,
+    "PotionDisplay"
+  );
+
+  const hasPotionStacker = Math.sign(
+    Number(Items.getItem("donor_potion_stacker_timestamp"))
+  );
+
+  const potionTimer = Brewing.get_potion_timer(potionName);
+  const ingredients = Brewing.get_ingredients(potionName);
+
+  const getMakeable = () =>
+    reduceToRecord<Ingredient>(ingredients, [
+      (value) => ({ item: value }),
+      (value) => ({ amount: Number(value) }),
+    ]).reduce(
+      (acc, cur) =>
+        Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc),
+      Number.MAX_SAFE_INTEGER
+    );
+
+  const onDrinkClick = () => {
+    if (amount > 0 && timer <= potionTimer * hasPotionStacker) {
+      setAmount(amount - 1);
+      setTimer( timer + potionTimer);
+      updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
+      sendMessage("DRINK", potionName);
+    }
+  };
+
+  const onBrewClick = (event: MouseEvent) => {
+    const makeable = getMakeable();
+    let making = 1;
+    if (makeable > 0) {
+      if (event.shiftKey) {
+        making = makeable;
+      } else if (event.ctrlKey) {
+        making = Math.min(5, makeable);
+      }
+      setAmount(amount + making);
+      sendMessage("BREW", potionName, making);
+    }
+  };
+
+  const onClick =
+    view === BrewingView.DRINK
+      ? onDrinkClick
+      : view === BrewingView.BREW
+      ? onBrewClick
+      : toggle;
 
   return (
     <div
@@ -31,30 +82,60 @@ const PotionDisplay = ({ potionName, toggle }: Props) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        justifyContent: "center",
+        height: "70px",
+        opacity,
       }}
     >
-      {toggle && <IPimg role="button" name={"stardust"} onClick={toggle} />}
+      <IPimg
+        role="button"
+        name={"stardust"}
+        onClick={toggle}
+        style={{
+          visibility: view === BrewingView.FAVORITE ? "visible" : "hidden",
+        }}
+        size={20}
+      />
       <IPimg
         name={potionName}
         size={30}
-        title={Items.get_pretty_item_name(potionName)}
+        title={
+          view === BrewingView.BREW
+            ? `Max ${getMakeable()}`
+            : Items.get_pretty_item_name(potionName)
+        }
+        onClick={onClick}
+        role={"button"}
+        style={
+          (view === BrewingView.BREW && getMakeable() === 0) ||
+          (view === BrewingView.DRINK && amount <= 0)
+            ? {
+                opacity: 0.5,
+                cursor: "default",
+              }
+            : undefined
+        }
       />
-      <span>{amount}</span>
-      <button
-        title={`max ${makeable}`}
+      <span
         style={{
-          fontSize: "25px",
-          fontWeight: "900",
-          borderRadius: "100px",
-          width: "30px",
-          display: "flex",
-          alignContent: "center",
-          backgroundColor: "unset",
-          border: "unset",
+          height: "20px",
         }}
       >
-        <span>+</span>
-      </button>
+        {amount}
+      </span>
+      {view === BrewingView.BREW && (
+        <span
+          style={{
+            fontSize: "25px",
+            fontWeight: "500",
+            position: "absolute",
+            margin: "0 0 40px 25px",
+            height: "30px",
+          }}
+        >
+          +
+        </span>
+      )}
     </div>
   );
 };

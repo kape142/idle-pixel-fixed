@@ -10,6 +10,7 @@ const IPimg = ({
   name,
   size,
   className,
+  style,
   ...rest
 }: PropsWithHTMLElementAttributes<Props>) => {
   return (
@@ -17,6 +18,7 @@ const IPimg = ({
       src={get_image(`images/${name}.png`)}
       alt={name}
       className={classNames({ [`w${size}`]: !!size }, className)}
+      style={{ objectFit: "cover", ...style }}
       {...rest}
     />
   );

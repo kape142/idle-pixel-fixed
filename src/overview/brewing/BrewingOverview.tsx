@@ -1,14 +1,25 @@
 import { useIPFDispatch } from "../../redux/hooks";
 import PotionDisplay from "./PotionDisplay";
 import { useLocalStorage } from "../../util/localstorage/useLocalStorage";
-import { useState } from "react";
+import { CSSProperties, useMemo, useState } from "react";
 import { toggleInArray } from "../../util/array";
+import IPimg from "../../util/IPimg";
+import {
+  replaceWebSocketMessage,
+  useWebsocket,
+} from "../../util/websocket/useWebsocket";
 
 interface Props {}
 
+export enum BrewingView {
+  DRINK = "DRINK",
+  BREW = "BREW",
+  FAVORITE = "FAVORITE",
+}
+
 const BrewingOverview = ({}: Props) => {
   const dispatch = useIPFDispatch();
-  const [edit, setEdit] = useState(false);
+  const [view, setView] = useState(BrewingView.DRINK);
 
   const potions = Object.keys(Brewing.POTION_TIMERS);
 
@@ -19,30 +30,100 @@ const BrewingOverview = ({}: Props) => {
   );
 
   const toggle = (potionName: string) => () => {
-    setFavorites((favs) => toggleInArray(favs, potionName));
+    setFavorites((favs) => {
+      favs = toggleInArray(favs, potionName);
+      return potions.filter((potion) => favs.includes(potion));
+    });
   };
+
+  const viewSelectorStyle = (selectorView: BrewingView): CSSProperties => ({
+    opacity: view === selectorView ? 0.3 : 1,
+  });
+
+  const onMessage = useMemo(
+    () =>
+      replaceWebSocketMessage("OPEN_DIALOGUE", (data) => {
+        if (data.split("~")[0] === "INGREDIENTS USED") {
+          return "";
+        }
+        return data;
+      }),
+    []
+  );
+
+  useWebsocket(onMessage, 1, "BrewingOverview");
 
   return (
     <div
       style={{
         display: "flex",
+        height: "250px",
+        width: "300px",
+        flexDirection: "row",
+        justifyContent: "center",
+        border: "1px solid black",
       }}
     >
-      <button onClick={() => setEdit((edit) => !edit)} type={"button"}>
-        Edit
-      </button>
-      {(edit ? potions : favorites).map((potion) => (
+      <div
+        style={{
+          display: "flex",
+          width: `100%`,
+          flexDirection: "row",
+        }}
+      >
         <div
           style={{
-            opacity: favorites.includes(potion) ? 1 : 0.5,
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            width: "30px",
+            flexShrink: 0,
+            justifyContent: "space-evenly",
+            alignItems: "center",
           }}
         >
-          <PotionDisplay
-            potionName={potion}
-            toggle={edit ? toggle(potion) : undefined}
+          <IPimg
+            role="button"
+            name={"brewing"}
+            onClick={() => setView(BrewingView.DRINK)}
+            size={30}
+            style={viewSelectorStyle(BrewingView.DRINK)}
+          />
+          <IPimg
+            role="button"
+            name={"brewing_kit"}
+            onClick={() => setView(BrewingView.BREW)}
+            size={30}
+            style={viewSelectorStyle(BrewingView.BREW)}
+          />
+          <IPimg
+            role="button"
+            name={"view"}
+            onClick={() => setView(BrewingView.FAVORITE)}
+            size={30}
+            style={viewSelectorStyle(BrewingView.FAVORITE)}
           />
         </div>
-      ))}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignContent: "flex-start",
+          }}
+        >
+          {(view === BrewingView.FAVORITE ? potions : favorites).map(
+            (potion) => (
+              <PotionDisplay
+                key={potion}
+                potionName={potion}
+                toggle={toggle(potion)}
+                view={view}
+                opacity={favorites.includes(potion) ? 1 : 0.5}
+              />
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 };
