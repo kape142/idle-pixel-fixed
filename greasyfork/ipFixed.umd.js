@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.4.1
+// @version      0.4.2
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -344,15 +344,14 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   };
   const useActivityLogWebSocketListener = (settings) => {
     const [list, setList] = useLocalStorage("activity-log", [], "useActivityLogWebSocketListener");
+    const addItem = (item) => setList((list2) => [item].concat(list2).slice(0, 200));
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
     const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
-      const activityLogItem = lootDialogueParser(data);
-      setList((list2) => [activityLogItem].concat(list2));
+      addItem(lootDialogueParser(data));
     }), [onMessageFactory]);
     useWebsocket(onLootMessage, 1e3, "useActivityLogWebSocketListener-Loot");
     const onCookedMessage = React$1.useMemo(() => onMessageFactory("COOKING_RESULTS", (data) => {
-      const activityLogItem = cookDialogueParser(data);
-      setList((list2) => [activityLogItem].concat(list2));
+      addItem(cookDialogueParser(data));
     }), [onMessageFactory]);
     useWebsocket(onCookedMessage, 1e3, "useActivityLogWebSocketListener-Cook");
     return list;

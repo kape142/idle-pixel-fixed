@@ -1,7 +1,16 @@
-import {useMemo} from "react";
-import {useLocalStorage} from "../util/localstorage/useLocalStorage";
-import {ActivityLogItem, ActivityLogItemType, ActivityLogSettings, LootItem} from "./types";
-import {consumeWebSocketMessage, observeWebSocketMessage, useWebsocket,} from "../util/websocket/useWebsocket";
+import { useMemo } from "react";
+import { useLocalStorage } from "../util/localstorage/useLocalStorage";
+import {
+  ActivityLogItem,
+  ActivityLogItemType,
+  ActivityLogSettings,
+  LootItem,
+} from "./types";
+import {
+  consumeWebSocketMessage,
+  observeWebSocketMessage,
+  useWebsocket,
+} from "../util/websocket/useWebsocket";
 
 export const useActivityLogWebSocketListener = (
   settings: ActivityLogSettings
@@ -11,6 +20,9 @@ export const useActivityLogWebSocketListener = (
     [],
     "useActivityLogWebSocketListener"
   );
+
+  const addItem = (item: ActivityLogItem) =>
+    setList((list) => [item].concat(list).slice(0, 200));
 
   const onMessageFactory = useMemo(
     () =>
@@ -24,8 +36,7 @@ export const useActivityLogWebSocketListener = (
     () =>
       onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
         //OPEN_LOOT_DIALOGUE=none~images/junk.png~30 Junk~#cce6ff~images/stone.png~3 Stone~#cce6ff
-        const activityLogItem = lootDialogueParser(data);
-        setList((list) => [activityLogItem].concat(list));
+        addItem(lootDialogueParser(data));
       }),
     [onMessageFactory]
   );
@@ -36,8 +47,7 @@ export const useActivityLogWebSocketListener = (
       onMessageFactory("COOKING_RESULTS", (data) => {
         //COOKING_RESULTS=cooked_shrimp~1~50~0~0
         // 1 cooked 50 xp, 0 burnt 0 xp
-        const activityLogItem = cookDialogueParser(data);
-        setList((list) => [activityLogItem].concat(list));
+        addItem(cookDialogueParser(data));
       }),
     [onMessageFactory]
   );
@@ -59,8 +69,7 @@ const cookDialogueParser = (data: string): ActivityLogItem => {
       burntXp: Number(dataArray[4]),
     },
   };
-}
-
+};
 
 const lootDialogueParser = (data: string): ActivityLogItem => {
   const dataArray = data.split("~");
