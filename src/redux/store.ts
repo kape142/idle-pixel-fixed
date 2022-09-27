@@ -1,19 +1,21 @@
 import { configureStore } from "@reduxjs/toolkit";
 import activityLogReducer from "../activitylog/activityLogReducer";
 import localStorageReducer from "../util/localstorage/localStorageReducer";
-import testReducer from "./testReducer";
 import websocketReducer from "../util/websocket/websocketReducer";
 import overviewReducer from "../overview/overviewReducer";
 import setItemsReducer from "../overview/setItems/setItemsReducer";
+import keyboardReducer from "../util/keyboard/keyboardReducer";
+import modiferKeyReducer, {modifierKeySlice} from "../util/keyboard/modiferKeyReducer";
 
 export const store = configureStore({
   reducer: {
-    test: testReducer,
     activityLog: activityLogReducer,
     localStorage: localStorageReducer,
     websocket: websocketReducer,
     overview: overviewReducer,
     setItems: setItemsReducer,
+    keyboard: keyboardReducer,
+    modifierKey: modiferKeyReducer,
   },
 });
 

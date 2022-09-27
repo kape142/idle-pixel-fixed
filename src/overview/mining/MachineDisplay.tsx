@@ -74,6 +74,7 @@ const MachineDisplay = ({ machine, changeOilOut }: Props) => {
             style={{
               fontWeight: "500",
               fontSize: "24px",
+              userSelect: "none",
               visibility: amountOn > 0 ? "visible" : "hidden",
             }}
             onClick={onDecrease}
@@ -86,6 +87,7 @@ const MachineDisplay = ({ machine, changeOilOut }: Props) => {
             style={{
               fontWeight: "500",
               fontSize: "24px",
+              userSelect: "none",
               visibility: amountOn < amount ? "visible" : "hidden",
             }}
             onClick={onIncrease}

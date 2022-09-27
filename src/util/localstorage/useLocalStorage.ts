@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useIPFDispatch, useIPFSelector } from "../../redux/hooks";
 import {
-  selectSubscribers,
+  selectLocalStorageSubscribers,
   subscribeToLocalStorage,
   unsubscribeFromLocalStorage,
 } from "./localStorageReducer";
@@ -17,7 +17,7 @@ export const useLocalStorage = <T>(
   });
 
   const dispatch = useIPFDispatch();
-  const subscribers = useIPFSelector(selectSubscribers);
+  const subscribers = useIPFSelector(selectLocalStorageSubscribers);
 
   useEffect(() => {
     dispatch(

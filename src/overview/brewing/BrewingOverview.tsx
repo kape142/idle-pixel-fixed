@@ -8,6 +8,8 @@ import {
   replaceWebSocketMessage,
   useWebsocket,
 } from "../../util/websocket/useWebsocket";
+import { POTIONS } from "./potions";
+import { useTooltip } from "../../util/tooltip/useTooltip";
 
 interface Props {}
 
@@ -21,7 +23,7 @@ const BrewingOverview = ({}: Props) => {
   const dispatch = useIPFDispatch();
   const [view, setView] = useState(BrewingView.DRINK);
 
-  const potions = Object.keys(Brewing.POTION_TIMERS);
+  const potions = Object.keys(POTIONS);
 
   const [favorites, setFavorites] = useLocalStorage(
     "brewing-favorites",
@@ -52,6 +54,8 @@ const BrewingOverview = ({}: Props) => {
   );
 
   useWebsocket(onMessage, 1, "BrewingOverview");
+
+  const { tooltipProps, Tooltip } = useTooltip(<span>balle</span>, <span>BALLE</span>, <span>ctrl+balle</span>);
 
   return (
     <div
@@ -88,6 +92,7 @@ const BrewingOverview = ({}: Props) => {
             onClick={() => setView(BrewingView.DRINK)}
             size={30}
             style={viewSelectorStyle(BrewingView.DRINK)}
+            {...tooltipProps}
           />
           <IPimg
             role="button"
@@ -124,6 +129,7 @@ const BrewingOverview = ({}: Props) => {
           )}
         </div>
       </div>
+      <Tooltip />
     </div>
   );
 };

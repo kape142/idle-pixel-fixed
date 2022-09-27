@@ -11,9 +11,17 @@ import { ActivityLogItem } from "../activitylog/types";
 import ActivityLogEntry from "../activitylog/ActivityLogEntry";
 import FarmingOverview from "./farming/FarmingOverview";
 import GatheringOverview from "./gathering/GatheringOverview";
+import { subscribeToKeyboardEvent } from "../util/keyboard/keyboardReducer";
+import {
+  ctrlKeyDown,
+  ctrlKeyUp,
+  shiftKeyDown,
+  shiftKeyUp,
+} from "../util/keyboard/modiferKeyReducer";
 
 interface Props {}
 
+const id = "OverviewPanel";
 const OverviewPanel = ({}: Props) => {
   const dispatch = useIPFDispatch();
   const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
@@ -27,11 +35,29 @@ const OverviewPanel = ({}: Props) => {
     };
   }, []);
 
-  const [list] = useLocalStorage<ActivityLogItem[]>(
-    "activity-log",
-    [],
-    "OverviewPanel"
-  );
+  const [list] = useLocalStorage<ActivityLogItem[]>("activity-log", [], id);
+
+  useEffect(() => {
+    dispatch(
+      subscribeToKeyboardEvent({
+        key: "Control",
+        onKeyDown: () => {
+          console.log("ctrlkeydown")
+          dispatch(ctrlKeyDown);
+        },
+        onKeyUp: () => dispatch(ctrlKeyUp),
+        id: `${id}-ctrl`,
+      })
+    );
+    dispatch(
+      subscribeToKeyboardEvent({
+        key: "Shift",
+        onKeyDown: () => dispatch(shiftKeyDown),
+        onKeyUp: () => dispatch(shiftKeyUp),
+        id: `${id}-shift`,
+      })
+    );
+  }, []);
 
   return overviewIsOpen ? (
     <div
@@ -109,7 +135,7 @@ const OverviewPanel = ({}: Props) => {
           borderRadius: "10px",
         }}
       >
-        {list.slice(0, 10).map((item) => (
+        {list.slice(0, 25).map((item) => (
           <ActivityLogEntry item={item} />
         ))}
       </div>

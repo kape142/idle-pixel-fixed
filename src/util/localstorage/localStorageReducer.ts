@@ -49,7 +49,7 @@ export const localStorageSlice = createSlice({
 export const { subscribeToLocalStorage, unsubscribeFromLocalStorage } =
   localStorageSlice.actions;
 
-export const selectSubscribers = (state: RootState) =>
+export const selectLocalStorageSubscribers = (state: RootState) =>
   state.localStorage.subscribers;
 
 export default localStorageSlice.reducer;

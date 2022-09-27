@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.4.0
+// @version      0.4.1
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -53,12 +53,12 @@ var __objRest = (source, exclude) => {
   }
   var React__default = /* @__PURE__ */ _interopDefaultLegacy(React$1);
   var ReactDOM__default = /* @__PURE__ */ _interopDefaultLegacy(ReactDOM);
-  const initialState$5 = {
+  const initialState$6 = {
     isOpen: false
   };
   const activityLogSlice = toolkit.createSlice({
     name: "Activity Log",
-    initialState: initialState$5,
+    initialState: initialState$6,
     reducers: {
       openActivityLog(state) {
         state.isOpen = true;
@@ -86,28 +86,28 @@ var __objRest = (source, exclude) => {
       onClick: () => dispatch(openActivityLog())
     }, "Activity Log")))));
   };
-  const initialState$4 = {
+  const initialState$5 = {
     subscribers: []
   };
-  const removeSubscriber = (state, subscriber) => {
+  const removeSubscriber$1 = (state, subscriber) => {
     state.subscribers = state.subscribers.filter((sub) => !(sub.id === subscriber.id && sub.key === subscriber.key));
     return state;
   };
   const localStorageSlice = toolkit.createSlice({
     name: "Local Storage",
-    initialState: initialState$4,
+    initialState: initialState$5,
     reducers: {
       subscribeToLocalStorage(state, action) {
-        state = removeSubscriber(state, action.payload);
+        state = removeSubscriber$1(state, action.payload);
         state.subscribers.push(action.payload);
       },
       unsubscribeFromLocalStorage(state, action) {
-        state = removeSubscriber(state, action.payload);
+        state = removeSubscriber$1(state, action.payload);
       }
     }
   });
   const { subscribeToLocalStorage, unsubscribeFromLocalStorage } = localStorageSlice.actions;
-  const selectSubscribers = (state) => state.localStorage.subscribers;
+  const selectLocalStorageSubscribers = (state) => state.localStorage.subscribers;
   var localStorageReducer = localStorageSlice.reducer;
   const useLocalStorage = (key, initialValue, id2) => {
     const [value, setValue] = React$1.useState(() => {
@@ -115,7 +115,7 @@ var __objRest = (source, exclude) => {
       return prevSaved ? JSON.parse(prevSaved) : initialValue;
     });
     const dispatch = useIPFDispatch();
-    const subscribers = useIPFSelector(selectSubscribers);
+    const subscribers = useIPFSelector(selectLocalStorageSubscribers);
     React$1.useEffect(() => {
       dispatch(subscribeToLocalStorage({
         setValue,
@@ -305,7 +305,7 @@ var __objRest = (source, exclude) => {
         return null;
     }
   };
-  const initialState$3 = {
+  const initialState$4 = {
     consumers: []
   };
   const removeConsumer = (state, consumerId) => {
@@ -314,7 +314,7 @@ var __objRest = (source, exclude) => {
   };
   const websocketSlice = toolkit.createSlice({
     name: "Websocket",
-    initialState: initialState$3,
+    initialState: initialState$4,
     reducers: {
       addWebsocketConsumer(state, action) {
         removeConsumer(state, action.payload.id);
@@ -448,6 +448,16 @@ var __objRest = (source, exclude) => {
     const open = useIPFSelector(selectActivityLogIsOpen);
     const dispatch = useIPFDispatch();
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
+      onClick: () => dispatch(closeActivityLog()),
+      style: {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      onClick: (event) => event.stopPropagation(),
       style: {
         position: "absolute",
         top: "10vh",
@@ -497,7 +507,7 @@ var __objRest = (source, exclude) => {
       }
     }, list.map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
       item
-    })))));
+    }))))));
   };
   const ID_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const makeId = (length) => {
@@ -507,30 +517,12 @@ var __objRest = (source, exclude) => {
     }
     return text;
   };
-  const initialState$2 = {
-    foo: "bonn",
-    bar: 0
-  };
-  const testSlice = toolkit.createSlice({
-    name: "test",
-    initialState: initialState$2,
-    reducers: {
-      testFoo(state, action) {
-        state.foo = action.payload;
-      },
-      testBar(state, action) {
-        state.bar += action.payload;
-      }
-    }
-  });
-  testSlice.actions;
-  var testReducer = testSlice.reducer;
-  const initialState$1 = {
+  const initialState$3 = {
     isOpen: false
   };
   const overviewSlice = toolkit.createSlice({
     name: "Overview",
-    initialState: initialState$1,
+    initialState: initialState$3,
     reducers: {
       openOverview(state) {
         state.isOpen = true;
@@ -543,7 +535,7 @@ var __objRest = (source, exclude) => {
   const { openOverview, closeOverview } = overviewSlice.actions;
   const selectOverviewIsOpen = (state) => state.overview.isOpen;
   var overviewReducer = overviewSlice.reducer;
-  const initialState = {
+  const initialState$2 = {
     observers: []
   };
   const removeObserver = (state, observerId) => {
@@ -552,7 +544,7 @@ var __objRest = (source, exclude) => {
   };
   const setItemsSlice = toolkit.createSlice({
     name: "Set items",
-    initialState,
+    initialState: initialState$2,
     reducers: {
       addSetItemsObserver(state, action) {
         removeObserver(state, action.payload.id);
@@ -566,14 +558,67 @@ var __objRest = (source, exclude) => {
   const { addSetItemsObserver, removeSetItemsObserver } = setItemsSlice.actions;
   const selectSetItemsObservers = (state) => state.setItems.observers;
   var setItemsReducer = setItemsSlice.reducer;
+  const initialState$1 = {
+    subscribers: []
+  };
+  const removeSubscriber = (state, subscriber) => {
+    state.subscribers = state.subscribers.filter((sub) => !(sub.id === subscriber.id && sub.key === subscriber.key));
+    return state;
+  };
+  const keyboardSlice = toolkit.createSlice({
+    name: "Keyboard",
+    initialState: initialState$1,
+    reducers: {
+      subscribeToKeyboardEvent(state, action) {
+        state = removeSubscriber(state, action.payload);
+        state.subscribers.push(action.payload);
+      },
+      unsubscribeFromKeyboardEvent(state, action) {
+        state = removeSubscriber(state, action.payload);
+      }
+    }
+  });
+  const { subscribeToKeyboardEvent, unsubscribeFromKeyboardEvent } = keyboardSlice.actions;
+  var keyboardReducer = keyboardSlice.reducer;
+  const initialState = {
+    ctrlKey: false,
+    shiftKey: false
+  };
+  const modifierKeySlice = toolkit.createSlice({
+    name: "Modifier key",
+    initialState,
+    reducers: {
+      ctrlKeyDown(state) {
+        state.ctrlKey = true;
+      },
+      ctrlKeyUp(state) {
+        state.ctrlKey = false;
+      },
+      shiftKeyDown(state) {
+        state.shiftKey = true;
+      },
+      shiftKeyUp(state) {
+        state.shiftKey = false;
+      }
+    }
+  });
+  const {
+    ctrlKeyDown,
+    ctrlKeyUp,
+    shiftKeyDown,
+    shiftKeyUp
+  } = modifierKeySlice.actions;
+  const selectModifierKeys = (state) => state.modifierKey;
+  var modiferKeyReducer = modifierKeySlice.reducer;
   const store = toolkit.configureStore({
     reducer: {
-      test: testReducer,
       activityLog: activityLogReducer,
       localStorage: localStorageReducer,
       websocket: websocketReducer,
       overview: overviewReducer,
-      setItems: setItemsReducer
+      setItems: setItemsReducer,
+      keyboard: keyboardReducer,
+      modifierKey: modiferKeyReducer
     }
   });
   const hideElementById = (id2) => {
@@ -717,21 +762,75 @@ var __objRest = (source, exclude) => {
     }), [observers]);
     useWebsocket(onMessage, 10, "setItems");
   };
+  const getData = (potionName) => ({
+    getTime: () => Brewing.get_potion_timer(potionName),
+    ingredients: reduceToRecord(Brewing.get_ingredients(potionName), [
+      (value) => ({ item: value }),
+      (value) => ({ amount: Number(value) })
+    ])
+  });
+  const POTIONS = {
+    stardust_potion: __spreadValues({
+      level: 1
+    }, getData("stardust_potion")),
+    energy_potion: __spreadValues({
+      level: 3
+    }, getData("energy_potion")),
+    anti_disease_potion: __spreadValues({
+      level: 5
+    }, getData("anti_disease_potion")),
+    tree_speed_potion: __spreadValues({
+      level: 8
+    }, getData("tree_speed_potion")),
+    smelting_upgrade_potion: __spreadValues({
+      level: 10
+    }, getData("smelting_upgrade_potion")),
+    great_stardust_potion: __spreadValues({
+      level: 13
+    }, getData("great_stardust_potion")),
+    farming_speed_potion: __spreadValues({
+      level: 15
+    }, getData("farming_speed_potion")),
+    rare_monster_potion: __spreadValues({
+      level: 20
+    }, getData("rare_monster_potion")),
+    super_stardust_potion: __spreadValues({
+      level: 25
+    }, getData("super_stardust_potion")),
+    heat_potion: __spreadValues({
+      level: 30
+    }, getData("heat_potion")),
+    bone_potion: __spreadValues({
+      level: 35
+    }, getData("bone_potion")),
+    promethium_potion: __spreadValues({
+      level: 40
+    }, getData("promethium_potion")),
+    super_rare_monster_potion: __spreadValues({
+      level: 45
+    }, getData("super_rare_monster_potion")),
+    ultra_stardust_potion: __spreadValues({
+      level: 50
+    }, getData("ultra_stardust_potion"))
+  };
   const PotionDisplay = ({ potionName, toggle, view, opacity }) => {
     const [amount, setAmount] = useNumberItemObserver(potionName, "PotionDisplay");
     const [timer, setTimer] = useNumberItemObserver(`${potionName}_timer`, "PotionDisplay");
-    const hasPotionStacker = Math.sign(Number(Items.getItem("donor_potion_stacker_timestamp")));
-    const potionTimer = Brewing.get_potion_timer(potionName);
-    const ingredients = Brewing.get_ingredients(potionName);
-    const getMakeable = () => reduceToRecord(ingredients, [
-      (value) => ({ item: value }),
-      (value) => ({ amount: Number(value) })
-    ]).reduce((acc, cur) => Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc), Number.MAX_SAFE_INTEGER);
+    const hasPotionStacker = Number(Items.getItem("donor_potion_stacker_timestamp")) === 1;
+    const hasEasyAchievement = Achievements.has_completed_set("brewing", "easy");
+    const maxPotions = 1 + (hasPotionStacker ? 1 : 0) + (hasEasyAchievement ? 1 : 0);
+    const { getTime, ingredients } = POTIONS[potionName];
+    const potionTimer = getTime();
+    const getMakeable = () => ingredients.reduce((acc, cur) => Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc), Number.MAX_SAFE_INTEGER);
     const onDrinkClick = () => {
-      if (amount > 0 && timer <= potionTimer * hasPotionStacker) {
+      console.log(amount, timer, potionTimer, maxPotions);
+      if (amount > 0 && timer < potionTimer * (maxPotions - 1) || timer === 0) {
         setAmount(amount - 1);
         setTimer(timer + potionTimer);
         updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
+        setTimeout(() => {
+          updateTimer(`potion-${potionName}_timer`, timer + potionTimer - 1);
+        }, 1e3);
         sendMessage("DRINK", potionName);
       }
     };
@@ -791,6 +890,35 @@ var __objRest = (source, exclude) => {
       }
     }, "+"));
   };
+  const useTooltip = (regular, shift, ctrl) => {
+    const { ctrlKey, shiftKey } = useIPFSelector(selectModifierKeys);
+    const [visible, setVisible] = React$1.useState(false);
+    const [target, setTarget] = React$1.useState(null);
+    console.log("ctrl: ", ctrlKey);
+    const onMouseOver = (event) => {
+      console.log(event);
+      setTarget(event.target);
+      setVisible(true);
+    };
+    const onMouseOut = (event) => {
+      setVisible(false);
+      setTarget(null);
+    };
+    return {
+      tooltipProps: { onMouseOver, onMouseOut },
+      Tooltip: () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement("div", {
+        style: {
+          position: "absolute",
+          top: target && `${target.offsetTop}px`,
+          left: target && `${target.offsetLeft + target.offsetWidth}px`,
+          border: "1px solid black",
+          borderRadius: "10px",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          padding: "10px"
+        }
+      }, ctrlKey && ctrl ? ctrl : shiftKey && shift ? shift : regular))
+    };
+  };
   var BrewingView = /* @__PURE__ */ ((BrewingView2) => {
     BrewingView2["DRINK"] = "DRINK";
     BrewingView2["BREW"] = "BREW";
@@ -800,7 +928,7 @@ var __objRest = (source, exclude) => {
   const BrewingOverview = ({}) => {
     useIPFDispatch();
     const [view, setView] = React$1.useState("DRINK");
-    const potions = Object.keys(Brewing.POTION_TIMERS);
+    const potions = Object.keys(POTIONS);
     const [favorites, setFavorites] = useLocalStorage("brewing-favorites", potions, "PotionDisplay");
     const toggle = (potionName) => () => {
       setFavorites((favs) => {
@@ -818,6 +946,7 @@ var __objRest = (source, exclude) => {
       return data;
     }), []);
     useWebsocket(onMessage, 1, "BrewingOverview");
+    const { tooltipProps, Tooltip } = useTooltip(/* @__PURE__ */ React.createElement("span", null, "balle"), /* @__PURE__ */ React.createElement("span", null, "BALLE"), /* @__PURE__ */ React.createElement("span", null, "ctrl+balle"));
     return /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -843,13 +972,13 @@ var __objRest = (source, exclude) => {
         justifyContent: "space-evenly",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       role: "button",
       name: "brewing",
       onClick: () => setView("DRINK"),
       size: 30,
       style: viewSelectorStyle("DRINK")
-    }), /* @__PURE__ */ React.createElement(IPimg, {
+    }, tooltipProps)), /* @__PURE__ */ React.createElement(IPimg, {
       role: "button",
       name: "brewing_kit",
       onClick: () => setView("BREW"),
@@ -873,7 +1002,7 @@ var __objRest = (source, exclude) => {
       toggle: toggle(potion),
       view,
       opacity: favorites.includes(potion) ? 1 : 0.5
-    })))));
+    })))), /* @__PURE__ */ React.createElement(Tooltip, null));
   };
   const WoodcuttingPatch = ({ type, stage, timer, plotClick }) => {
     return /* @__PURE__ */ React.createElement("div", {
@@ -958,11 +1087,11 @@ var __objRest = (source, exclude) => {
       }
     ];
   };
-  const id$3 = "WoodcuttingOverview";
+  const id$4 = "WoodcuttingOverview";
   const WoodcuttingOverview = () => {
     useIPFDispatch();
     const patches = 3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
-    const patchData = useTreePatchesObserver(id$3);
+    const patchData = useTreePatchesObserver(id$4);
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const plotClick = (index) => {
       const { stage, setType, setStage } = patchData[index];
@@ -1175,6 +1304,7 @@ var __objRest = (source, exclude) => {
       style: {
         fontWeight: "500",
         fontSize: "24px",
+        userSelect: "none",
         visibility: amountOn > 0 ? "visible" : "hidden"
       },
       onClick: onDecrease
@@ -1185,6 +1315,7 @@ var __objRest = (source, exclude) => {
       style: {
         fontWeight: "500",
         fontSize: "24px",
+        userSelect: "none",
         visibility: amountOn < amount ? "visible" : "hidden"
       },
       onClick: onIncrease
@@ -1252,9 +1383,9 @@ var __objRest = (source, exclude) => {
       }
     }, stage === 4 ? "READY" : timer > 0 ? format_time(timer) : "")) : null);
   };
-  const id$2 = "SeedDisplay";
+  const id$3 = "SeedDisplay";
   const SeedDisplay = ({ seed, seedClick, nextPlot }) => {
-    const [amount, setAmount] = useNumberItemObserver(seed, id$2);
+    const [amount, setAmount] = useNumberItemObserver(seed, id$3);
     const onClick = () => {
       if (nextPlot > 0 && amount > 0) {
         seedClick();
@@ -1341,103 +1472,90 @@ var __objRest = (source, exclude) => {
   };
   const SEEDS = {
     dotted_green_leaf_seeds: {
-      id: "dotted_green_leaf_seeds",
       level: 1,
       stopsDying: 15,
       time: 15,
       bonemealCost: 0
     },
     stardust_seeds: {
-      id: "stardust_seeds",
       level: 8,
       stopsDying: 0,
       time: 20,
       bonemealCost: 0
     },
     green_leaf_seeds: {
-      id: "green_leaf_seeds",
       level: 10,
       stopsDying: 25,
       time: 30,
       bonemealCost: 0
     },
     lime_leaf_seeds: {
-      id: "lime_leaf_seeds",
       level: 25,
       stopsDying: 40,
       time: 60,
       bonemealCost: 1
     },
     gold_leaf_seeds: {
-      id: "gold_leaf_seeds",
       level: 50,
       stopsDying: 60,
       time: 2 * 60,
       bonemealCost: 10
     },
     crystal_leaf_seeds: {
-      id: "crystal_leaf_seeds",
       level: 70,
       stopsDying: 80,
       time: 5 * 60,
       bonemealCost: 25
     },
     red_mushroom_seeds: {
-      id: "red_mushroom_seeds",
       level: 1,
       stopsDying: 0,
       time: 5,
       bonemealCost: 0
     },
     tree_seeds: {
-      id: "tree_seeds",
       level: 10,
       stopsDying: 25,
       time: 5 * 60,
       bonemealCost: 10
     },
     oak_tree_seeds: {
-      id: "oak_tree_seeds",
       level: 25,
       stopsDying: 40,
       time: 4 * 60,
       bonemealCost: 25
     },
     willow_tree_seeds: {
-      id: "willow_tree_seeds",
       level: 37,
       stopsDying: 55,
       time: 8 * 60,
       bonemealCost: 50
     },
     maple_tree_seeds: {
-      id: "maple_tree_seeds",
       level: 50,
       stopsDying: 65,
       time: 12 * 60,
       bonemealCost: 120
     },
     stardust_tree_seeds: {
-      id: "stardust_tree_seeds",
       level: 65,
       stopsDying: 80,
       time: 15 * 60,
       bonemealCost: 150
     },
     pine_tree_seeds: {
-      id: "pine_tree_seeds",
       level: 70,
       stopsDying: 85,
       time: 17 * 60,
       bonemealCost: 180
     }
   };
-  const id$1 = "FarmingOverview";
+  const id$2 = "FarmingOverview";
   const FarmingOverview = () => {
     useIPFDispatch();
     const seeds = Object.keys(SEEDS);
     const patches = 3 + Math.sign(Number(Items.getItem("donor_farm_patches_timestamp"))) * 2;
-    const patchData = useFarmPatchesObserver(id$1);
+    const patchData = useFarmPatchesObserver(id$2);
     const nextPlot = patchData.map((patch) => patch.stage).findIndex((value, index) => value === 0 && index < patches) + 1;
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const seedClick = (seed) => {
@@ -1553,10 +1671,27 @@ var __objRest = (source, exclude) => {
       image: "gem_mine"
     }
   };
-  const id = "GatheringOverview";
+  const id$1 = "GatheringOverview";
   const GatheringOverview = () => {
     const areas = Object.keys(AREAS);
-    useItemObserver("current_gathering_area", id);
+    const [currentGatheringArea, setCurrentGatheringArea] = useItemObserver("current_gathering_area", id$1);
+    const [updateTimeout, setUpdateTimeout] = React$1.useState(setTimeout(() => {
+    }));
+    const currentIndex = Object.keys(AREAS).indexOf(currentGatheringArea);
+    const areaAmount = Object.keys(AREAS).length;
+    const queueChange = (change) => {
+      const nextIndex = currentIndex + change;
+      if (nextIndex >= 0 && nextIndex <= areaAmount) {
+        const nextArea = Object.keys(AREAS)[nextIndex];
+        setCurrentGatheringArea(nextArea);
+        clearTimeout(updateTimeout);
+        setUpdateTimeout(setTimeout(() => {
+          if (nextArea !== currentGatheringArea) {
+            sendMessage("GATHERING", nextArea);
+          }
+        }, 1e3));
+      }
+    };
     return /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1571,6 +1706,55 @@ var __objRest = (source, exclude) => {
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        visibility: currentIndex > 0 ? "visible" : "hidden",
+        height: "100px",
+        width: "40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      },
+      role: "button",
+      onClick: () => queueChange(-1)
+    }, /* @__PURE__ */ React.createElement("span", {
+      style: {
+        fontWeight: "500",
+        fontSize: "24px",
+        userSelect: "none"
+      }
+    }, "<")), /* @__PURE__ */ React.createElement(IPimg, {
+      name: `gathering_${AREAS[currentGatheringArea].image}`,
+      size: 100
+    }), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        visibility: currentIndex < areaAmount - 1 ? "visible" : "hidden",
+        height: "100px",
+        width: "40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      },
+      role: "button",
+      onClick: () => queueChange(1)
+    }, /* @__PURE__ */ React.createElement("span", {
+      style: {
+        fontWeight: "500",
+        fontSize: "24px",
+        userSelect: "none"
+      }
+    }, ">"))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        userSelect: "none"
+      }
+    }, /* @__PURE__ */ React.createElement("span", null, Items.get_pretty_item_name(currentGatheringArea))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
         width: "100%",
         justifyContent: "space-evenly"
       }
@@ -1579,6 +1763,7 @@ var __objRest = (source, exclude) => {
       key: area
     }))));
   };
+  const id = "OverviewPanel";
   const OverviewPanel = ({}) => {
     const dispatch = useIPFDispatch();
     const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
@@ -1590,7 +1775,24 @@ var __objRest = (source, exclude) => {
         oldSwitchPanels.current(id2);
       };
     }, []);
-    const [list, _] = useLocalStorage("activity-log", [], "OverviewPanel");
+    const [list] = useLocalStorage("activity-log", [], id);
+    React$1.useEffect(() => {
+      dispatch(subscribeToKeyboardEvent({
+        key: "Control",
+        onKeyDown: () => {
+          console.log("ctrlkeydown");
+          dispatch(ctrlKeyDown);
+        },
+        onKeyUp: () => dispatch(ctrlKeyUp),
+        id: `${id}-ctrl`
+      }));
+      dispatch(subscribeToKeyboardEvent({
+        key: "Shift",
+        onKeyDown: () => dispatch(shiftKeyDown),
+        onKeyUp: () => dispatch(shiftKeyUp),
+        id: `${id}-shift`
+      }));
+    }, []);
     return overviewIsOpen ? /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1648,7 +1850,7 @@ var __objRest = (source, exclude) => {
         border: "1px solid grey",
         borderRadius: "10px"
       }
-    }, list.slice(0, 10).map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
+    }, list.slice(0, 25).map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
       item
     })))) : null;
   };
@@ -1657,6 +1859,21 @@ var __objRest = (source, exclude) => {
     appendReact(/* @__PURE__ */ React.createElement(ActivityLog, null), "content");
     appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "menu-bar-keyitems");
     appendReact(/* @__PURE__ */ React.createElement(OverviewPanel, null), "panels", "panel-keyitems");
+    document.body.onkeydown = (ev) => {
+      console.log(ev, store.getState().keyboard.subscribers);
+      store.getState().keyboard.subscribers.forEach((sub) => {
+        if (ev.key === sub.key) {
+          sub.onKeyDown(ev);
+        }
+      });
+    };
+    document.body.onkeyup = (ev) => {
+      store.getState().keyboard.subscribers.forEach((sub) => {
+        if (ev.key === sub.key) {
+          sub.onKeyUp(ev);
+        }
+      });
+    };
   };
   waitFor(() => {
     try {

@@ -2,14 +2,10 @@ import IPimg from "../../util/IPimg";
 import { reduceToRecord } from "../../util/arrayUtils";
 import { BrewingView } from "./BrewingOverview";
 import { sendMessage } from "../../util/websocket/useWebsocket";
-import React, { MouseEvent } from "react";
+import React, {MouseEvent, useEffect} from "react";
 import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { updateTimer } from "../../util/domOperations";
-
-interface Ingredient {
-  item: string;
-  amount: number;
-}
+import { POTIONS } from "./potions";
 
 interface Props {
   potionName: string;
@@ -28,28 +24,33 @@ const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
     "PotionDisplay"
   );
 
-  const hasPotionStacker = Math.sign(
-    Number(Items.getItem("donor_potion_stacker_timestamp"))
-  );
+  const hasPotionStacker =
+    Number(Items.getItem("donor_potion_stacker_timestamp")) === 1;
+  const hasEasyAchievement = Achievements.has_completed_set("brewing", "easy");
 
-  const potionTimer = Brewing.get_potion_timer(potionName);
-  const ingredients = Brewing.get_ingredients(potionName);
+  const maxPotions =
+    1 + (hasPotionStacker ? 1 : 0) + (hasEasyAchievement ? 1 : 0);
+
+  const { getTime, ingredients } = POTIONS[potionName];
+
+  const potionTimer = getTime();
 
   const getMakeable = () =>
-    reduceToRecord<Ingredient>(ingredients, [
-      (value) => ({ item: value }),
-      (value) => ({ amount: Number(value) }),
-    ]).reduce(
+    ingredients.reduce(
       (acc, cur) =>
         Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc),
       Number.MAX_SAFE_INTEGER
     );
 
   const onDrinkClick = () => {
-    if (amount > 0 && timer <= potionTimer * hasPotionStacker) {
+    console.log(amount, timer, potionTimer, maxPotions);
+    if ((amount > 0 && timer < potionTimer * (maxPotions - 1)) || timer === 0) {
       setAmount(amount - 1);
-      setTimer( timer + potionTimer);
+      setTimer(timer + potionTimer);
       updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
+      setTimeout(() => {
+        updateTimer(`potion-${potionName}_timer`, timer + potionTimer - 1);
+      }, 1000);
       sendMessage("DRINK", potionName);
     }
   };
