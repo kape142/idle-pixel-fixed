@@ -443,10 +443,12 @@ var __objRest = (source, exclude) => {
     };
   };
   const ActivityLog = ({}) => {
+    console.log("activity log render start");
     const [settings, setSettings] = useLocalStorage("activity-log-settings", { blockDialogues: true }, "ActivityLog");
     const list = useActivityLogWebSocketListener(settings);
     const open = useIPFSelector(selectActivityLogIsOpen);
     const dispatch = useIPFDispatch();
+    console.log(open, list);
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
       onClick: () => dispatch(closeActivityLog()),
       style: {
@@ -589,6 +591,7 @@ var __objRest = (source, exclude) => {
     initialState,
     reducers: {
       ctrlKeyDown(state) {
+        console.log("ctrlkeydown in reducer");
         state.ctrlKey = true;
       },
       ctrlKeyUp(state) {
@@ -710,28 +713,29 @@ var __objRest = (source, exclude) => {
     ];
   };
   const useItemObserver = (item, id2) => {
-    const [value, _setValue] = React$1.useState(Items.getItem(item));
-    const [trueValue, _setTrueValue] = React$1.useState(Items.getItem(item));
+    const [value, setValue] = React$1.useState(Items.getItem(item).toString());
+    const trueValue = React$1.useRef(Items.getItem(item).toString());
     const itemId = `${id2}-${item}`;
-    const observers = useIPFSelector(selectSetItemsObservers);
-    const [forceTrueValueTimeout, setForceTrueValueTimeout] = React$1.useState(setTimeout(() => {
-    }));
-    const setValue = React$1.useCallback((newValue) => {
-      _setValue(newValue);
-      Items.set(item, newValue);
-      observers.forEach((observer) => observer.item === item && observer.onChange(newValue));
-    }, [observers, item, _setValue]);
+    const [forceTrueValueTimeout, setForceTrueValueTimeout] = React$1.useState(null);
     const setTrueValue = React$1.useCallback((newValue) => {
-      if (value === trueValue) {
-        _setValue(newValue);
+      if (value === trueValue.current) {
+        setValue(newValue);
       } else {
-        clearTimeout(forceTrueValueTimeout);
-        setForceTrueValueTimeout(setTimeout(() => {
-          _setValue(newValue);
-        }, 3e3));
+        if (!forceTrueValueTimeout) {
+          setForceTrueValueTimeout(setTimeout(() => {
+            setValue(trueValue.current);
+            setForceTrueValueTimeout(null);
+          }, 3e3));
+        }
       }
-      _setTrueValue(newValue);
-    }, [_setValue, _setTrueValue, forceTrueValueTimeout, setForceTrueValueTimeout]);
+      trueValue.current = newValue;
+    }, [
+      setValue,
+      forceTrueValueTimeout,
+      setForceTrueValueTimeout,
+      value,
+      trueValue
+    ]);
     const dispatch = useIPFDispatch();
     React$1.useEffect(() => {
       dispatch(addSetItemsObserver({
@@ -813,18 +817,49 @@ var __objRest = (source, exclude) => {
       level: 50
     }, getData("ultra_stardust_potion"))
   };
-  const PotionDisplay = ({ potionName, toggle, view, opacity }) => {
+  const useTooltip = (regular, shift, ctrl) => {
+    const { ctrlKey, shiftKey } = useIPFSelector(selectModifierKeys);
+    const [visible, setVisible] = React$1.useState(false);
+    const [target, setTarget] = React$1.useState(null);
+    const onMouseOver = (event) => {
+      console.log(event);
+      setTarget(event.target);
+      setVisible(true);
+    };
+    const onMouseOut = (event) => {
+      setVisible(false);
+      setTarget(null);
+    };
+    return [
+      { onMouseOver, onMouseOut },
+      () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement("div", {
+        style: {
+          position: "absolute",
+          top: target && `${target.offsetTop}px`,
+          left: target && `${target.offsetLeft + target.offsetWidth}px`,
+          border: "1px solid black",
+          borderRadius: "10px",
+          backgroundColor: "rgba(0, 0, 0, 0.9)",
+          padding: "10px",
+          color: "white",
+          zIndex: 100
+        }
+      }, ctrlKey && ctrl ? ctrl : shiftKey && shift ? shift : regular))
+    ];
+  };
+  const PotionDisplay = ({ potionName, toggle, view, favorite }) => {
     const [amount, setAmount] = useNumberItemObserver(potionName, "PotionDisplay");
     const [timer, setTimer] = useNumberItemObserver(`${potionName}_timer`, "PotionDisplay");
     const hasPotionStacker = Number(Items.getItem("donor_potion_stacker_timestamp")) === 1;
-    const hasEasyAchievement = Achievements.has_completed_set("brewing", "easy");
+    const hasEasyAchievement = Achievements.has_completed_set("brewing", "medium");
     const maxPotions = 1 + (hasPotionStacker ? 1 : 0) + (hasEasyAchievement ? 1 : 0);
     const { getTime, ingredients } = POTIONS[potionName];
     const potionTimer = getTime();
     const getMakeable = () => ingredients.reduce((acc, cur) => Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc), Number.MAX_SAFE_INTEGER);
+    const isDrinkable = amount > 0 && (timer < potionTimer * (maxPotions - 1) || timer === 0);
     const onDrinkClick = () => {
       console.log(amount, timer, potionTimer, maxPotions);
-      if (amount > 0 && timer < potionTimer * (maxPotions - 1) || timer === 0) {
+      if (isDrinkable) {
         setAmount(amount - 1);
         setTimer(timer + potionTimer);
         updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
@@ -847,8 +882,12 @@ var __objRest = (source, exclude) => {
         sendMessage("BREW", potionName, making);
       }
     };
+    const [drinkProps, DrinkToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, "Drink ", Items.get_pretty_item_name(potionName)));
+    const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, "Brew ", Items.get_pretty_item_name(potionName)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Brew ", getMakeable(), " ", Items.get_pretty_item_name(potionName)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Brew ", Math.min(getMakeable(), 5), " ", Items.get_pretty_item_name(potionName)));
+    const [viewProps, ViewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, favorite ? "Hide" : "Show", " ", Items.get_pretty_item_name(potionName)));
+    const imgProps = view === BrewingView.DRINK ? drinkProps : view === BrewingView.BREW ? brewProps : viewProps;
     const onClick = view === BrewingView.DRINK ? onDrinkClick : view === BrewingView.BREW ? onBrewClick : toggle;
-    return /* @__PURE__ */ React__default["default"].createElement("div", {
+    return /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         width: "50px",
         display: "flex",
@@ -856,7 +895,7 @@ var __objRest = (source, exclude) => {
         alignItems: "center",
         justifyContent: "center",
         height: "70px",
-        opacity
+        opacity: favorite ? 1 : 0.5
       }
     }, /* @__PURE__ */ React__default["default"].createElement(IPimg, {
       role: "button",
@@ -866,17 +905,17 @@ var __objRest = (source, exclude) => {
         visibility: view === BrewingView.FAVORITE ? "visible" : "hidden"
       },
       size: 20
-    }), /* @__PURE__ */ React__default["default"].createElement(IPimg, {
+    }), /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: potionName,
       size: 30,
       title: view === BrewingView.BREW ? `Max ${getMakeable()}` : Items.get_pretty_item_name(potionName),
       onClick,
       role: "button",
-      style: view === BrewingView.BREW && getMakeable() === 0 || view === BrewingView.DRINK && amount <= 0 ? {
+      style: view === BrewingView.BREW && getMakeable() === 0 || view === BrewingView.DRINK && !isDrinkable ? {
         opacity: 0.5,
         cursor: "default"
       } : void 0
-    }), /* @__PURE__ */ React__default["default"].createElement("span", {
+    }, imgProps)), /* @__PURE__ */ React__default["default"].createElement("span", {
       style: {
         height: "20px"
       }
@@ -888,36 +927,22 @@ var __objRest = (source, exclude) => {
         margin: "0 0 40px 25px",
         height: "30px"
       }
-    }, "+"));
+    }, "+")), amount > 0 && /* @__PURE__ */ React__default["default"].createElement(DrinkToolTip, null), getMakeable() > 0 && /* @__PURE__ */ React__default["default"].createElement(BrewToolTip, null), /* @__PURE__ */ React__default["default"].createElement(ViewToolTip, null));
   };
-  const useTooltip = (regular, shift, ctrl) => {
-    const { ctrlKey, shiftKey } = useIPFSelector(selectModifierKeys);
-    const [visible, setVisible] = React$1.useState(false);
-    const [target, setTarget] = React$1.useState(null);
-    console.log("ctrl: ", ctrlKey);
-    const onMouseOver = (event) => {
-      console.log(event);
-      setTarget(event.target);
-      setVisible(true);
-    };
-    const onMouseOut = (event) => {
-      setVisible(false);
-      setTarget(null);
-    };
-    return {
-      tooltipProps: { onMouseOver, onMouseOut },
-      Tooltip: () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement("div", {
-        style: {
-          position: "absolute",
-          top: target && `${target.offsetTop}px`,
-          left: target && `${target.offsetLeft + target.offsetWidth}px`,
-          border: "1px solid black",
-          borderRadius: "10px",
-          backgroundColor: "rgba(0, 0, 0, 0.7)",
-          padding: "10px"
-        }
-      }, ctrlKey && ctrl ? ctrl : shiftKey && shift ? shift : regular))
-    };
+  const OverviewBox = (_c) => {
+    var _d = _c, { width, height, children } = _d, style = __objRest(_d, ["width", "height", "children"]);
+    return /* @__PURE__ */ React.createElement("div", {
+      style: __spreadValues({
+        display: "flex",
+        height: `${height}px`,
+        width: `${width}px`,
+        gap: "5px",
+        border: "1px solid black",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
+      }, style)
+    }, children);
   };
   var BrewingView = /* @__PURE__ */ ((BrewingView2) => {
     BrewingView2["DRINK"] = "DRINK";
@@ -946,16 +971,14 @@ var __objRest = (source, exclude) => {
       return data;
     }), []);
     useWebsocket(onMessage, 1, "BrewingOverview");
-    const { tooltipProps, Tooltip } = useTooltip(/* @__PURE__ */ React.createElement("span", null, "balle"), /* @__PURE__ */ React.createElement("span", null, "BALLE"), /* @__PURE__ */ React.createElement("span", null, "ctrl+balle"));
-    return /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        flexDirection: "row",
-        justifyContent: "center",
-        border: "1px solid black"
-      }
+    const [drinkProps, DrinkToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Drink potions"));
+    const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Brew potions"));
+    const [viewProps, ViewToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Hide/show potions"));
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 300,
+      flexDirection: "row",
+      alignItems: "stretch"
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -978,19 +1001,19 @@ var __objRest = (source, exclude) => {
       onClick: () => setView("DRINK"),
       size: 30,
       style: viewSelectorStyle("DRINK")
-    }, tooltipProps)), /* @__PURE__ */ React.createElement(IPimg, {
+    }, drinkProps)), /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       role: "button",
       name: "brewing_kit",
       onClick: () => setView("BREW"),
       size: 30,
       style: viewSelectorStyle("BREW")
-    }), /* @__PURE__ */ React.createElement(IPimg, {
+    }, brewProps)), /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       role: "button",
       name: "view",
       onClick: () => setView("FAVORITE"),
       size: 30,
       style: viewSelectorStyle("FAVORITE")
-    })), /* @__PURE__ */ React.createElement("div", {
+    }, viewProps))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         flexWrap: "wrap",
@@ -1001,8 +1024,8 @@ var __objRest = (source, exclude) => {
       potionName: potion,
       toggle: toggle(potion),
       view,
-      opacity: favorites.includes(potion) ? 1 : 0.5
-    })))), /* @__PURE__ */ React.createElement(Tooltip, null));
+      favorite: favorites.includes(potion)
+    })))), /* @__PURE__ */ React.createElement(DrinkToolTip, null), /* @__PURE__ */ React.createElement(BrewToolTip, null), /* @__PURE__ */ React.createElement(ViewToolTip, null));
   };
   const WoodcuttingPatch = ({ type, stage, timer, plotClick }) => {
     return /* @__PURE__ */ React.createElement("div", {
@@ -1087,11 +1110,11 @@ var __objRest = (source, exclude) => {
       }
     ];
   };
-  const id$4 = "WoodcuttingOverview";
+  const id$6 = "WoodcuttingOverview";
   const WoodcuttingOverview = () => {
     useIPFDispatch();
     const patches = 3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
-    const patchData = useTreePatchesObserver(id$4);
+    const patchData = useTreePatchesObserver(id$6);
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const plotClick = (index) => {
       const { stage, setType, setStage } = patchData[index];
@@ -1105,16 +1128,16 @@ var __objRest = (source, exclude) => {
         setStage(0);
       }
     };
-    return /* @__PURE__ */ React.createElement("div", {
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 550
+    }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
-        height: "250px",
-        gap: "10px",
         alignItems: "center",
         alignContent: "center",
-        border: "1px solid black",
-        width: "550px",
-        justifyContent: "center"
+        justifyContent: "center",
+        gap: "10px"
       }
     }, Array(patches).fill(null).map((v, i) => /* @__PURE__ */ React.createElement(WoodcuttingPatch, {
       type: patchData[i].type,
@@ -1122,12 +1145,11 @@ var __objRest = (source, exclude) => {
       timer: patchData[i].timer,
       plotClick: () => plotClick(i),
       key: i + 1
-    })));
+    }))));
   };
-  const OreDisplay = ({ ore, disabled, setSmelting }) => {
+  const OreDisplay = ({ ore, disabled, setSmelting, oil }) => {
     const furnaceCapacity = Number(Furnace.getFurnaceCapacity());
     const [amount, setAmount] = useNumberItemObserver(ore, `OreDisplay-${ore}`);
-    const [oil, setOil] = useNumberItemObserver("oil", `OreDisplay-${ore}`);
     const oilPerBar = Crafting.getOilPerBar(ore);
     const onClick = (event) => {
       const maxAmount = Math.floor(Math.min(oil / oilPerBar, amount));
@@ -1185,37 +1207,32 @@ var __objRest = (source, exclude) => {
       size: 30
     }), /* @__PURE__ */ React.createElement("span", null, amount));
   };
-  const ORES = ["copper", "iron", "silver", "gold", "promethium"];
+  const ORES = ["copper", "iron", "silver", "gold", "promethium", "titanium"];
   const BARS = [
     "bronze_bar",
     "iron_bar",
     "silver_bar",
     "gold_bar",
-    "promethium_bar"
+    "promethium_bar",
+    "titanium_bar"
   ];
   const oreToBar = (ore) => ore === "copper" ? "bronze_bar" : `${ore}_bar`;
+  const id$5 = "CraftingOverview";
   const CraftingOverview = () => {
-    useIPFDispatch();
     const furnace = Furnace.getFurnace();
-    const [oreType, setOreType] = useItemObserver("furnace_ore_type", "CraftingOverview");
-    const [oreAmountAt, setOreAmountAt] = useNumberItemObserver("furnace_ore_amount_at", "CraftingOverview");
-    const [oreAmountSet, setOreAmountSet] = useNumberItemObserver("furnace_ore_amount_set", "CraftingOverview");
+    const [oreType, setOreType] = useItemObserver("furnace_ore_type", id$5);
+    const [oreAmountAt, setOreAmountAt] = useNumberItemObserver("furnace_ore_amount_at", id$5);
+    const [oreAmountSet, setOreAmountSet] = useNumberItemObserver("furnace_ore_amount_set", id$5);
+    const [oil] = useNumberItemObserver("oil", id$5);
+    const [charcoal, setCharcoal] = useNumberItemObserver("charcoal", id$5);
     const setSmelting = (smelting) => {
       setOreType(smelting.type);
       setOreAmountAt(smelting.amountAt);
       setOreAmountSet(smelting.amountSet);
     };
-    return /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        gap: "10px",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "1px solid black"
-      }
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 400
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1224,7 +1241,20 @@ var __objRest = (source, exclude) => {
     }, BARS.map((bar) => /* @__PURE__ */ React.createElement(BarDisplay, {
       bar,
       key: bar
-    }))), /* @__PURE__ */ React.createElement(IPimg, {
+    }))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: { visibility: "hidden" }
+    }, "padding"), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
       name: furnace,
       size: 50
     }), /* @__PURE__ */ React.createElement("div", {
@@ -1236,7 +1266,16 @@ var __objRest = (source, exclude) => {
       name: oreToBar(oreType),
       size: 20,
       style: {}
-    }), /* @__PURE__ */ React.createElement("span", null, `${oreAmountAt}/${oreAmountSet}`)) : /* @__PURE__ */ React.createElement("span", null, "Not smelting")), /* @__PURE__ */ React.createElement("div", {
+    }), /* @__PURE__ */ React.createElement("span", null, `${oreAmountAt}/${oreAmountSet}`)) : /* @__PURE__ */ React.createElement("span", null, "Not smelting"))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: "charcoal",
+      size: 30
+    }), /* @__PURE__ */ React.createElement("span", null, charcoal))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         gap: "10px"
@@ -1245,16 +1284,22 @@ var __objRest = (source, exclude) => {
       ore,
       disabled: oreType !== "none",
       setSmelting,
+      oil,
       key: ore
     }))));
   };
-  const MachineDisplay = ({ machine, changeOilOut }) => {
+  const MachineDisplay = ({
+    machine,
+    changeOilOut,
+    reqLevel,
+    miningLevel
+  }) => {
     useIPFDispatch();
     const oilUse = Ores.getOilCost(machine);
     const [amount, setAmount] = useNumberItemObserver(machine, "MachineDisplay");
     const [amountOn, setAmountOn] = useNumberItemObserver(`${machine}_on`, "MachineDisplay");
     const onIncrease = () => {
-      if (amountOn < amount) {
+      if (miningLevel >= reqLevel && amountOn < amount) {
         sendMessage("MACHINERY", machine, "increase");
         setAmountOn(amountOn + 1);
         changeOilOut(oilUse);
@@ -1267,7 +1312,7 @@ var __objRest = (source, exclude) => {
         changeOilOut(-oilUse);
       }
     };
-    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
+    return amount >= 0 ? /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1316,28 +1361,36 @@ var __objRest = (source, exclude) => {
         fontWeight: "500",
         fontSize: "24px",
         userSelect: "none",
-        visibility: amountOn < amount ? "visible" : "hidden"
+        visibility: miningLevel >= reqLevel && amountOn < amount ? "visible" : "hidden"
       },
       onClick: onIncrease
     }, ">")))) : null;
   };
-  const MACHINES = ["drill", "crusher", "giant_drill"];
+  const MACHINES = {
+    drill: {
+      level: 1
+    },
+    crusher: {
+      level: 10
+    },
+    giant_drill: {
+      level: 25
+    },
+    excavator: {
+      level: 60
+    }
+  };
+  const id$4 = "MiningOverview";
   const MiningOverview = () => {
     useIPFDispatch();
-    const [oilIn, setOilIn] = useNumberItemObserver("oil_in", "MiningOverview");
-    const [oilOut, setOilOut] = React$1.useState(Items.getItem("oil_out"));
-    const changeOilOut = (change) => setOilOut((oilOut2) => oilOut2 + change);
-    return /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        gap: "10px",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "1px solid black"
-      }
+    const [oilIn] = useNumberItemObserver("oil_in", id$4);
+    const [oilOut, setOilOut] = useNumberItemObserver("oil_out", id$4);
+    const [miningXp] = useNumberItemObserver("mining_xp", id$4);
+    const miningLevel = get_level(miningXp);
+    const changeOilOut = (change) => setOilOut(oilOut + change);
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 400
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: "oil",
       size: 50,
@@ -1348,9 +1401,11 @@ var __objRest = (source, exclude) => {
         width: "100%",
         justifyContent: "space-evenly"
       }
-    }, MACHINES.map((machine) => /* @__PURE__ */ React.createElement(MachineDisplay, {
+    }, Object.keys(MACHINES).map((machine) => /* @__PURE__ */ React.createElement(MachineDisplay, {
       machine,
       changeOilOut,
+      reqLevel: MACHINES[machine].level,
+      miningLevel,
       key: machine
     }))));
   };
@@ -1577,16 +1632,10 @@ var __objRest = (source, exclude) => {
         setStage(0);
       }
     };
-    return /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        height: "250px",
-        gap: "5px",
-        border: "1px solid black",
-        width: "550px",
-        flexDirection: "column",
-        justifyContent: "space-between"
-      }
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 550,
+      justifyContent: "space-between"
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1692,17 +1741,9 @@ var __objRest = (source, exclude) => {
         }, 1e3));
       }
     };
-    return /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        gap: "10px",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "1px solid black"
-      }
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 300
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1764,10 +1805,11 @@ var __objRest = (source, exclude) => {
     }))));
   };
   const id = "OverviewPanel";
-  const OverviewPanel = ({}) => {
+  const OverviewPanel = () => {
     const dispatch = useIPFDispatch();
     const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
     useSetItemsObserver();
+    useLocalStorage("overview-settings", { showActivityLog: false }, id);
     const oldSwitchPanels = React$1.useRef(switch_panels);
     React$1.useEffect(() => {
       switch_panels = (id2) => {
@@ -1781,15 +1823,15 @@ var __objRest = (source, exclude) => {
         key: "Control",
         onKeyDown: () => {
           console.log("ctrlkeydown");
-          dispatch(ctrlKeyDown);
+          dispatch(ctrlKeyDown());
         },
-        onKeyUp: () => dispatch(ctrlKeyUp),
+        onKeyUp: () => dispatch(ctrlKeyUp()),
         id: `${id}-ctrl`
       }));
       dispatch(subscribeToKeyboardEvent({
         key: "Shift",
-        onKeyDown: () => dispatch(shiftKeyDown),
-        onKeyUp: () => dispatch(shiftKeyUp),
+        onKeyDown: () => dispatch(shiftKeyDown()),
+        onKeyUp: () => dispatch(shiftKeyUp()),
         id: `${id}-shift`
       }));
     }, []);
@@ -1860,19 +1902,23 @@ var __objRest = (source, exclude) => {
     appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "menu-bar-keyitems");
     appendReact(/* @__PURE__ */ React.createElement(OverviewPanel, null), "panels", "panel-keyitems");
     document.body.onkeydown = (ev) => {
-      console.log(ev, store.getState().keyboard.subscribers);
-      store.getState().keyboard.subscribers.forEach((sub) => {
-        if (ev.key === sub.key) {
-          sub.onKeyDown(ev);
-        }
-      });
+      if (!ev.repeat) {
+        console.log(ev, store.getState().keyboard.subscribers);
+        store.getState().keyboard.subscribers.forEach((sub) => {
+          if (ev.key === sub.key) {
+            sub.onKeyDown(ev);
+          }
+        });
+      }
     };
     document.body.onkeyup = (ev) => {
-      store.getState().keyboard.subscribers.forEach((sub) => {
-        if (ev.key === sub.key) {
-          sub.onKeyUp(ev);
-        }
-      });
+      if (!ev.repeat) {
+        store.getState().keyboard.subscribers.forEach((sub) => {
+          if (ev.key === sub.key) {
+            sub.onKeyUp(ev);
+          }
+        });
+      }
     };
   };
   waitFor(() => {

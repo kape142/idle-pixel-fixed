@@ -3,6 +3,7 @@ import GatheringBagDisplay from "./GatheringBagDisplay";
 import IPimg from "../../util/IPimg";
 import { useState } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
+import OverviewBox from "../OverviewBox";
 
 const AREAS: Record<string, { image: string }> = {
   mines: {
@@ -56,18 +57,8 @@ const GatheringOverview = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        gap: "10px",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "1px solid black",
-      }}
-    >
+
+    <OverviewBox height={250} width={300} >
       <div
         style={{
           display: "flex",
@@ -144,7 +135,7 @@ const GatheringOverview = () => {
           <GatheringBagDisplay area={area} key={area} />
         ))}
       </div>
-    </div>
+    </OverviewBox>
   );
 };
 

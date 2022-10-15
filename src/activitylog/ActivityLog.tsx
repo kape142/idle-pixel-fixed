@@ -11,6 +11,7 @@ import { useActivityLogWebSocketListener } from "./useActivityLogWebsocketListen
 interface Props {}
 
 const ActivityLog = ({}: Props) => {
+  console.log("activity log render start")
   const [settings, setSettings] = useLocalStorage<ActivityLogSettings>(
     "activity-log-settings",
     { blockDialogues: true },
@@ -21,7 +22,7 @@ const ActivityLog = ({}: Props) => {
 
   const open = useIPFSelector(selectActivityLogIsOpen);
   const dispatch = useIPFDispatch();
-
+  console.log(open, list)
   return (
     <>
       {open && (

@@ -12,19 +12,23 @@ const init = () => {
   appendReact(<OverviewButton />, "menu-bar-buttons", "menu-bar-keyitems");
   appendReact(<OverviewPanel />, "panels", "panel-keyitems");
   document.body.onkeydown = (ev: any) => {
-    console.log(ev, store.getState().keyboard.subscribers)
-    store.getState().keyboard.subscribers.forEach((sub) => {
-      if (ev.key === sub.key) {
-        sub.onKeyDown(ev);
-      }
-    });
+    if(!ev.repeat){
+      console.log(ev, store.getState().keyboard.subscribers)
+      store.getState().keyboard.subscribers.forEach((sub) => {
+        if (ev.key === sub.key) {
+          sub.onKeyDown(ev);
+        }
+      });
+    }
   };
   document.body.onkeyup = (ev: any) => {
-    store.getState().keyboard.subscribers.forEach((sub) => {
-      if (ev.key === sub.key) {
-        sub.onKeyUp(ev);
-      }
-    });
+    if(!ev.repeat){
+      store.getState().keyboard.subscribers.forEach((sub) => {
+        if (ev.key === sub.key) {
+          sub.onKeyUp(ev);
+        }
+      });
+    }
   };
 };
 

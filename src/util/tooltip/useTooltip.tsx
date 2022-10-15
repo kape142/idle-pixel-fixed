@@ -3,13 +3,13 @@ import { useIPFDispatch, useIPFSelector } from "../../redux/hooks";
 import { selectOverviewIsOpen } from "../../overview/overviewReducer";
 import { selectModifierKeys } from "../keyboard/modiferKeyReducer";
 
-interface ReturnType {
-  tooltipProps: {
+type ReturnType = [
+  {
     onMouseOver: MouseEventHandler;
     onMouseOut: MouseEventHandler;
-  };
-  Tooltip: () => ReactElement;
-}
+  },
+  () => ReactElement
+];
 
 export const useTooltip = (
   regular: ReactElement,
@@ -20,7 +20,6 @@ export const useTooltip = (
 
   const [visible, setVisible] = useState(false);
   const [target, setTarget] = useState<any>(null);
-  console.log("ctrl: ", ctrlKey)
 
   const onMouseOver: MouseEventHandler = (event) => {
     console.log(event);
@@ -30,12 +29,12 @@ export const useTooltip = (
 
   const onMouseOut: MouseEventHandler = (event) => {
     setVisible(false);
-    setTarget(null)
+    setTarget(null);
   };
 
-  return {
-    tooltipProps: { onMouseOver, onMouseOut },
-    Tooltip: () => (
+  return [
+    { onMouseOver, onMouseOut },
+    () => (
       <>
         {visible && (
           <div
@@ -45,8 +44,10 @@ export const useTooltip = (
               left: target && `${target.offsetLeft + target.offsetWidth}px`,
               border: "1px solid black",
               borderRadius: "10px",
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              backgroundColor: "rgba(0, 0, 0, 0.9)",
               padding: "10px",
+              color: "white",
+              zIndex: 100
             }}
           >
             {ctrlKey && ctrl ? ctrl : shiftKey && shift ? shift : regular}
@@ -54,5 +55,5 @@ export const useTooltip = (
         )}
       </>
     ),
-  };
+  ];
 };

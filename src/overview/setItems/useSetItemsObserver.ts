@@ -1,11 +1,4 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import { useIPFDispatch, useIPFSelector } from "../../redux/hooks";
 import {
   addSetItemsObserver,
@@ -17,7 +10,6 @@ import {
   useWebsocket,
 } from "../../util/websocket/useWebsocket";
 import { reduceToRecord } from "../../util/arrayUtils";
-import { isNumber, isString } from "../../util/typeGuards";
 
 interface Data {
   name: string;
@@ -43,41 +35,37 @@ export const useItemObserver = (
   item: string,
   id: string
 ): [string, (newValue: string) => void] => {
-  const [value, _setValue] = useState(Items.getItem(item));
-  const [trueValue, _setTrueValue] = useState(Items.getItem(item));
+  const [value, setValue] = useState(Items.getItem(item).toString());
+  const trueValue = useRef(Items.getItem(item).toString());
 
   const itemId = `${id}-${item}`;
 
-  const observers = useIPFSelector(selectSetItemsObservers);
-
-  const [forceTrueValueTimeout, setForceTrueValueTimeout] = useState(
-    setTimeout(() => {})
-  );
-
-  const setValue = useCallback(
-    (newValue: string) => {
-      _setValue(newValue);
-      Items.set(item, newValue);
-      observers.forEach((observer) => observer.item === item && observer.onChange(newValue));
-    },
-    [observers, item, _setValue]
-  );
+  const [forceTrueValueTimeout, setForceTrueValueTimeout] =
+    useState<NodeJS.Timeout | null>(null);
 
   const setTrueValue = useCallback(
     (newValue: string) => {
-      if (value === trueValue) {
-        _setValue(newValue);
+      if (value === trueValue.current) {
+        setValue(newValue);
       } else {
-        clearTimeout(forceTrueValueTimeout);
-        setForceTrueValueTimeout(
-          setTimeout(() => {
-            _setValue(newValue);
-          }, 3000)
-        );
+        if (!forceTrueValueTimeout) {
+          setForceTrueValueTimeout(
+            setTimeout(() => {
+              setValue(trueValue.current);
+              setForceTrueValueTimeout(null);
+            }, 3000)
+          );
+        }
       }
-      _setTrueValue(newValue);
+      trueValue.current = newValue;
     },
-    [_setValue, _setTrueValue, forceTrueValueTimeout, setForceTrueValueTimeout]
+    [
+      setValue,
+      forceTrueValueTimeout,
+      setForceTrueValueTimeout,
+      value,
+      trueValue,
+    ]
   );
 
   const dispatch = useIPFDispatch();

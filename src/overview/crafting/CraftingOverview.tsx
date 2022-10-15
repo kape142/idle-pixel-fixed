@@ -6,14 +6,16 @@ import {
   useNumberItemObserver,
 } from "../setItems/useSetItemsObserver";
 import BarDisplay from "./BarDisplay";
+import OverviewBox from "../OverviewBox";
 
-const ORES = ["copper", "iron", "silver", "gold", "promethium"];
+const ORES = ["copper", "iron", "silver", "gold", "promethium", "titanium"];
 const BARS = [
   "bronze_bar",
   "iron_bar",
   "silver_bar",
   "gold_bar",
   "promethium_bar",
+  "titanium_bar",
 ];
 
 const oreToBar = (ore: string) =>
@@ -25,22 +27,20 @@ export interface Smelting {
   amountSet: number;
 }
 
+const id = "CraftingOverview";
 const CraftingOverview = () => {
-  const dispatch = useIPFDispatch();
-
   const furnace = Furnace.getFurnace();
-  const [oreType, setOreType] = useItemObserver(
-    "furnace_ore_type",
-    "CraftingOverview"
-  );
+  const [oreType, setOreType] = useItemObserver("furnace_ore_type", id);
   const [oreAmountAt, setOreAmountAt] = useNumberItemObserver(
     "furnace_ore_amount_at",
-    "CraftingOverview"
+    id
   );
   const [oreAmountSet, setOreAmountSet] = useNumberItemObserver(
     "furnace_ore_amount_set",
-    "CraftingOverview"
+    id
   );
+  const [oil] = useNumberItemObserver("oil", id);
+  const [charcoal, setCharcoal] = useNumberItemObserver("charcoal", id);
 
   const setSmelting = (smelting: Smelting) => {
     setOreType(smelting.type);
@@ -49,18 +49,7 @@ const CraftingOverview = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        gap: "10px",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "1px solid black",
-      }}
-    >
+    <OverviewBox height={250} width={400}>
       <div
         style={{
           display: "flex",
@@ -71,22 +60,49 @@ const CraftingOverview = () => {
           <BarDisplay bar={bar} key={bar} />
         ))}
       </div>
-      <IPimg name={furnace} size={50} />
       <div
         style={{
           display: "flex",
-          gap: "5px",
+          gap: "10px",
         }}
       >
-        {oreType !== "none" ? (
-          <>
-            <IPimg name={oreToBar(oreType)} size={20} style={{}} />
-            <span>{`${oreAmountAt}/${oreAmountSet}`}</span>
-          </>
-        ) : (
-          <span>Not smelting</span>
-        )}
+        <div style={{ visibility: "hidden" }}>padding</div>
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexDirection: "column",
+          }}
+        >
+          <IPimg name={furnace} size={50} />
+          <div
+            style={{
+              display: "flex",
+              gap: "5px",
+            }}
+          >
+            {oreType !== "none" ? (
+              <>
+                <IPimg name={oreToBar(oreType)} size={20} style={{}} />
+                <span>{`${oreAmountAt}/${oreAmountSet}`}</span>
+              </>
+            ) : (
+              <span>Not smelting</span>
+            )}
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexDirection: "column",
+          }}
+        >
+          <IPimg name={"charcoal"} size={30} />
+          <span>{charcoal}</span>
+        </div>
       </div>
+
       <div
         style={{
           display: "flex",
@@ -98,11 +114,12 @@ const CraftingOverview = () => {
             ore={ore}
             disabled={oreType !== "none"}
             setSmelting={setSmelting}
+            oil={oil}
             key={ore}
           />
         ))}
       </div>
-    </div>
+    </OverviewBox>
   );
 };
 

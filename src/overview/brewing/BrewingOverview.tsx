@@ -10,6 +10,7 @@ import {
 } from "../../util/websocket/useWebsocket";
 import { POTIONS } from "./potions";
 import { useTooltip } from "../../util/tooltip/useTooltip";
+import OverviewBox from "../OverviewBox";
 
 interface Props {}
 
@@ -55,19 +56,12 @@ const BrewingOverview = ({}: Props) => {
 
   useWebsocket(onMessage, 1, "BrewingOverview");
 
-  const { tooltipProps, Tooltip } = useTooltip(<span>balle</span>, <span>BALLE</span>, <span>ctrl+balle</span>);
+  const [drinkProps, DrinkToolTip] = useTooltip(<span>Drink potions</span>);
+  const [brewProps, BrewToolTip] = useTooltip(<span>Brew potions</span>);
+  const [viewProps, ViewToolTip] = useTooltip(<span>Hide/show potions</span>);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "250px",
-        width: "300px",
-        flexDirection: "row",
-        justifyContent: "center",
-        border: "1px solid black",
-      }}
-    >
+    <OverviewBox height={250} width={300} flexDirection={"row"} alignItems={"stretch"}>
       <div
         style={{
           display: "flex",
@@ -92,7 +86,7 @@ const BrewingOverview = ({}: Props) => {
             onClick={() => setView(BrewingView.DRINK)}
             size={30}
             style={viewSelectorStyle(BrewingView.DRINK)}
-            {...tooltipProps}
+            {...drinkProps}
           />
           <IPimg
             role="button"
@@ -100,6 +94,7 @@ const BrewingOverview = ({}: Props) => {
             onClick={() => setView(BrewingView.BREW)}
             size={30}
             style={viewSelectorStyle(BrewingView.BREW)}
+            {...brewProps}
           />
           <IPimg
             role="button"
@@ -107,6 +102,7 @@ const BrewingOverview = ({}: Props) => {
             onClick={() => setView(BrewingView.FAVORITE)}
             size={30}
             style={viewSelectorStyle(BrewingView.FAVORITE)}
+            {...viewProps}
           />
         </div>
         <div
@@ -123,14 +119,16 @@ const BrewingOverview = ({}: Props) => {
                 potionName={potion}
                 toggle={toggle(potion)}
                 view={view}
-                opacity={favorites.includes(potion) ? 1 : 0.5}
+                favorite={favorites.includes(potion)}
               />
             )
           )}
         </div>
       </div>
-      <Tooltip />
-    </div>
+      <DrinkToolTip />
+      <BrewToolTip />
+      <ViewToolTip />
+    </OverviewBox>
   );
 };
 

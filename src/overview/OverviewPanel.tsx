@@ -7,7 +7,7 @@ import WoodcuttingOverview from "./woodcutting/WoodcuttingOverview";
 import CraftingOverview from "./crafting/CraftingOverview";
 import MiningOverview from "./mining/MiningOverview";
 import { useLocalStorage } from "../util/localstorage/useLocalStorage";
-import { ActivityLogItem } from "../activitylog/types";
+import {ActivityLogItem, ActivityLogSettings} from "../activitylog/types";
 import ActivityLogEntry from "../activitylog/ActivityLogEntry";
 import FarmingOverview from "./farming/FarmingOverview";
 import GatheringOverview from "./gathering/GatheringOverview";
@@ -19,13 +19,21 @@ import {
   shiftKeyUp,
 } from "../util/keyboard/modiferKeyReducer";
 
-interface Props {}
+interface OverviewSettings {
+  showActivityLog: boolean
+}
 
 const id = "OverviewPanel";
-const OverviewPanel = ({}: Props) => {
+const OverviewPanel = () => {
   const dispatch = useIPFDispatch();
   const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
   useSetItemsObserver();
+
+  const [settings, setSettings] = useLocalStorage<OverviewSettings>(
+    "overview-settings",
+    { showActivityLog: false },
+    id
+  );
 
   const oldSwitchPanels = useRef(switch_panels);
   useEffect(() => {
@@ -43,17 +51,17 @@ const OverviewPanel = ({}: Props) => {
         key: "Control",
         onKeyDown: () => {
           console.log("ctrlkeydown")
-          dispatch(ctrlKeyDown);
+          dispatch(ctrlKeyDown());
         },
-        onKeyUp: () => dispatch(ctrlKeyUp),
+        onKeyUp: () => dispatch(ctrlKeyUp()),
         id: `${id}-ctrl`,
       })
     );
     dispatch(
       subscribeToKeyboardEvent({
         key: "Shift",
-        onKeyDown: () => dispatch(shiftKeyDown),
-        onKeyUp: () => dispatch(shiftKeyUp),
+        onKeyDown: () => dispatch(shiftKeyDown()),
+        onKeyUp: () => dispatch(shiftKeyUp()),
         id: `${id}-shift`,
       })
     );

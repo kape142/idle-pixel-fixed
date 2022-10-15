@@ -2,6 +2,7 @@ import { useIPFDispatch } from "../../redux/hooks";
 import WoodcuttingPatch from "./WoodcuttingPatch";
 import { useTreePatchesObserver } from "./useTreePatchesObserver";
 import { hideElementById } from "../../util/domOperations";
+import OverviewBox from "../OverviewBox";
 
 const id = "WoodcuttingOverview";
 const WoodcuttingOverview = () => {
@@ -31,30 +32,29 @@ const WoodcuttingOverview = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "250px",
-        gap: "10px",
-        alignItems: "center",
-        alignContent: "center",
-        border: "1px solid black",
-        width: "550px",
-        justifyContent: "center",
-      }}
-    >
-      {Array(patches)
-        .fill(null)
-        .map((v, i) => (
-          <WoodcuttingPatch
-            type={patchData[i].type}
-            stage={patchData[i].stage}
-            timer={patchData[i].timer}
-            plotClick={() => plotClick(i)}
-            key={i + 1}
-          />
-        ))}
-    </div>
+    <OverviewBox height={250} width={550} >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          alignContent: "center",
+          justifyContent: "center",
+          gap: "10px",
+        }}
+      >
+        {Array(patches)
+          .fill(null)
+          .map((v, i) => (
+            <WoodcuttingPatch
+              type={patchData[i].type}
+              stage={patchData[i].stage}
+              timer={patchData[i].timer}
+              plotClick={() => plotClick(i)}
+              key={i + 1}
+            />
+          ))}
+      </div>
+    </OverviewBox>
   );
 };
 

@@ -2,19 +2,20 @@ import IPimg from "../../util/IPimg";
 import { reduceToRecord } from "../../util/arrayUtils";
 import { BrewingView } from "./BrewingOverview";
 import { sendMessage } from "../../util/websocket/useWebsocket";
-import React, {MouseEvent, useEffect} from "react";
+import React, { MouseEvent, useEffect } from "react";
 import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { updateTimer } from "../../util/domOperations";
 import { POTIONS } from "./potions";
+import { useTooltip } from "../../util/tooltip/useTooltip";
 
 interface Props {
   potionName: string;
   toggle: () => void;
   view: BrewingView;
-  opacity: number;
+  favorite: boolean;
 }
 
-const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
+const PotionDisplay = ({ potionName, toggle, view, favorite }: Props) => {
   const [amount, setAmount] = useNumberItemObserver(
     potionName,
     "PotionDisplay"
@@ -26,7 +27,7 @@ const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
 
   const hasPotionStacker =
     Number(Items.getItem("donor_potion_stacker_timestamp")) === 1;
-  const hasEasyAchievement = Achievements.has_completed_set("brewing", "easy");
+  const hasEasyAchievement = Achievements.has_completed_set("brewing", "medium");
 
   const maxPotions =
     1 + (hasPotionStacker ? 1 : 0) + (hasEasyAchievement ? 1 : 0);
@@ -42,9 +43,11 @@ const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
       Number.MAX_SAFE_INTEGER
     );
 
+  const isDrinkable = amount > 0 && (timer < potionTimer * (maxPotions - 1) || timer === 0)
+
   const onDrinkClick = () => {
     console.log(amount, timer, potionTimer, maxPotions);
-    if ((amount > 0 && timer < potionTimer * (maxPotions - 1)) || timer === 0) {
+    if (isDrinkable) {
       setAmount(amount - 1);
       setTimer(timer + potionTimer);
       updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
@@ -69,6 +72,33 @@ const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
     }
   };
 
+  const [drinkProps, DrinkToolTip] = useTooltip(
+    <span>Drink {Items.get_pretty_item_name(potionName)}</span>
+  );
+
+  const [brewProps, BrewToolTip] = useTooltip(
+    <span>Brew {Items.get_pretty_item_name(potionName)}</span>,
+    <span>
+      Brew {getMakeable()} {Items.get_pretty_item_name(potionName)}
+    </span>,
+    <span>
+      Brew {Math.min(getMakeable(), 5)} {Items.get_pretty_item_name(potionName)}
+    </span>
+  );
+
+  const [viewProps, ViewToolTip] = useTooltip(
+    <span>
+      {favorite ? "Hide" : "Show"} {Items.get_pretty_item_name(potionName)}
+    </span>
+  );
+
+  const imgProps =
+    view === BrewingView.DRINK
+      ? drinkProps
+      : view === BrewingView.BREW
+      ? brewProps
+      : viewProps;
+
   const onClick =
     view === BrewingView.DRINK
       ? onDrinkClick
@@ -77,67 +107,73 @@ const PotionDisplay = ({ potionName, toggle, view, opacity }: Props) => {
       : toggle;
 
   return (
-    <div
-      style={{
-        width: "50px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "70px",
-        opacity,
-      }}
-    >
-      <IPimg
-        role="button"
-        name={"stardust"}
-        onClick={toggle}
+    <>
+      <div
         style={{
-          visibility: view === BrewingView.FAVORITE ? "visible" : "hidden",
-        }}
-        size={20}
-      />
-      <IPimg
-        name={potionName}
-        size={30}
-        title={
-          view === BrewingView.BREW
-            ? `Max ${getMakeable()}`
-            : Items.get_pretty_item_name(potionName)
-        }
-        onClick={onClick}
-        role={"button"}
-        style={
-          (view === BrewingView.BREW && getMakeable() === 0) ||
-          (view === BrewingView.DRINK && amount <= 0)
-            ? {
-                opacity: 0.5,
-                cursor: "default",
-              }
-            : undefined
-        }
-      />
-      <span
-        style={{
-          height: "20px",
+          width: "50px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "70px",
+          opacity: favorite ? 1 : 0.5,
         }}
       >
-        {amount}
-      </span>
-      {view === BrewingView.BREW && (
+        <IPimg
+          role="button"
+          name={"stardust"}
+          onClick={toggle}
+          style={{
+            visibility: view === BrewingView.FAVORITE ? "visible" : "hidden",
+          }}
+          size={20}
+        />
+        <IPimg
+          name={potionName}
+          size={30}
+          title={
+            view === BrewingView.BREW
+              ? `Max ${getMakeable()}`
+              : Items.get_pretty_item_name(potionName)
+          }
+          onClick={onClick}
+          role={"button"}
+          style={
+            (view === BrewingView.BREW && getMakeable() === 0) ||
+            (view === BrewingView.DRINK && !isDrinkable)
+              ? {
+                  opacity: 0.5,
+                  cursor: "default",
+                }
+              : undefined
+          }
+          {...imgProps}
+        />
         <span
           style={{
-            fontSize: "25px",
-            fontWeight: "500",
-            position: "absolute",
-            margin: "0 0 40px 25px",
-            height: "30px",
+            height: "20px",
           }}
         >
-          +
+          {amount}
         </span>
-      )}
-    </div>
+        {view === BrewingView.BREW && (
+          <span
+            style={{
+              fontSize: "25px",
+              fontWeight: "500",
+              position: "absolute",
+              margin: "0 0 40px 25px",
+              height: "30px",
+            }}
+          >
+            +
+          </span>
+        )}
+      </div>
+      {amount > 0 && <DrinkToolTip />}
+      {getMakeable() > 0 && <BrewToolTip />}
+      <ViewToolTip />
+    </>
   );
 };
 

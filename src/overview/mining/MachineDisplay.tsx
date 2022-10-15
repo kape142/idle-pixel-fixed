@@ -6,9 +6,16 @@ import { sendMessage } from "../../util/websocket/useWebsocket";
 interface Props {
   machine: string;
   changeOilOut: (change: number) => void;
+  reqLevel: number;
+  miningLevel: number;
 }
 
-const MachineDisplay = ({ machine, changeOilOut }: Props) => {
+const MachineDisplay = ({
+  machine,
+  changeOilOut,
+  reqLevel,
+  miningLevel,
+}: Props) => {
   const dispatch = useIPFDispatch();
 
   const oilUse = Ores.getOilCost(machine);
@@ -20,7 +27,7 @@ const MachineDisplay = ({ machine, changeOilOut }: Props) => {
   );
 
   const onIncrease = () => {
-    if (amountOn < amount) {
+    if (miningLevel >= reqLevel && amountOn < amount) {
       sendMessage("MACHINERY", machine, "increase");
       setAmountOn(amountOn + 1);
       changeOilOut(oilUse);
@@ -35,7 +42,7 @@ const MachineDisplay = ({ machine, changeOilOut }: Props) => {
     }
   };
 
-  return amount > 0 ? (
+  return amount >= 0 ? (
     <div
       style={{
         display: "flex",
@@ -88,7 +95,10 @@ const MachineDisplay = ({ machine, changeOilOut }: Props) => {
               fontWeight: "500",
               fontSize: "24px",
               userSelect: "none",
-              visibility: amountOn < amount ? "visible" : "hidden",
+              visibility:
+                miningLevel >= reqLevel && amountOn < amount
+                  ? "visible"
+                  : "hidden",
             }}
             onClick={onIncrease}
           >

@@ -5,6 +5,7 @@ import { useFarmPatchesObserver } from "./useFarmPatchesObserver";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { hideElementById } from "../../util/domOperations";
 import { SEEDS } from "./seeds";
+import OverviewBox from "../OverviewBox";
 
 const id = "FarmingOverview";
 const FarmingOverview = () => {
@@ -49,17 +50,7 @@ const FarmingOverview = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "250px",
-        gap: "5px",
-        border: "1px solid black",
-        width: "550px",
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
-    >
+    <OverviewBox height={250} width={550} justifyContent={"space-between"}>
       <div
         style={{
           display: "flex",
@@ -97,7 +88,7 @@ const FarmingOverview = () => {
             />
           ))}
       </div>
-    </div>
+    </OverviewBox>
   );
 };
 

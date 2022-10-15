@@ -12,12 +12,12 @@ interface Props {
   ore: string;
   disabled: boolean;
   setSmelting: (smelting: Smelting) => void;
+  oil: number;
 }
 
-const OreDisplay = ({ ore, disabled, setSmelting }: Props) => {
+const OreDisplay = ({ ore, disabled, setSmelting, oil }: Props) => {
   const furnaceCapacity = Number(Furnace.getFurnaceCapacity());
   const [amount, setAmount] = useNumberItemObserver(ore, `OreDisplay-${ore}`);
-  const [oil, setOil] = useNumberItemObserver("oil", `OreDisplay-${ore}`);
   const oilPerBar = Crafting.getOilPerBar(ore);
 
   const onClick = (event: MouseEvent) => {
