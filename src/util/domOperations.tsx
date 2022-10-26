@@ -18,6 +18,25 @@ export const showElementById = (id: string) => {
   }
 };
 
+export const updateTextContentById = (id: string, textContent: string) => {
+  const el = document.getElementById(id);
+  if(el){
+    el.textContent = textContent
+  }
+}
+
+export const updateTimer = (selector: string, time: number) => {
+  const id = `notification-${selector}`;
+  const element = document.getElementById(id);
+  if (element) {
+    const displays = element.getElementsByTagName("item-display");
+    if (displays[0]) {
+      displays[0].textContent = format_time(time);
+    }
+    showElementById(id);
+  }
+};
+
 export const appendReact = (
   component: React.ReactElement,
   id: string,
@@ -32,7 +51,7 @@ export const appendReact = (
   if (insertBeforeId) {
     const insertBeforeElement = document.getElementById(insertBeforeId);
     if (insertBeforeElement) {
-      parent.insertBefore(insertBeforeElement, reactRoot);
+      parent.insertBefore(reactRoot, insertBeforeElement);
     } else {
       console.warn(
         `trying to insert before id ${insertBeforeId} but no element with that id was found`

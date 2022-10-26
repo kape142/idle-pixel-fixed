@@ -7,6 +7,4 @@ declare global {
     }
 }
 
-export type OnMessageFunc = (ev: MessageEvent<string>) => void 
-
 export {}

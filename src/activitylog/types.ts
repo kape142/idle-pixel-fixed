@@ -41,4 +41,10 @@ export type ActivityLogItem = ActivityLogMetadata &
 
 export interface ActivityLogSettings {
   blockDialogues: boolean;
+  showInOverview: boolean;
+}
+
+export const initialActivitLogSettings: ActivityLogSettings = {
+  blockDialogues: true,
+  showInOverview: false,
 }

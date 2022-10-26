@@ -1,5 +1,5 @@
 import { LootContent } from "../types";
-import {formatDate, timeSince} from "../../util/timeUtils";
+import { formatDate, timeSince } from "../../util/timeUtils";
 
 interface Props {
   content: LootContent;
@@ -11,8 +11,9 @@ const LootEntry = ({ content, timestamp }: Props) => {
     <div
       style={{
         borderBottom: "1px solid grey",
-        margin: "10px",
-        padding: "10px",
+        margin: "1em",
+        padding: "1em",
+        width: "100%",
       }}
     >
       <div
@@ -20,12 +21,13 @@ const LootEntry = ({ content, timestamp }: Props) => {
           display: "flex",
           width: "100%",
           justifyContent: "space-around",
+          fontSize: "1.6em",
         }}
       >
         <div
           style={{
             visibility: "hidden",
-            width: "50px",
+            width: "5em",
           }}
         >
           padding
@@ -35,7 +37,7 @@ const LootEntry = ({ content, timestamp }: Props) => {
           title={formatDate(timestamp)}
           style={{
             color: "gray",
-            width: "50px",
+            width: "5em",
           }}
         >
           {timeSince(timestamp)}
@@ -53,22 +55,28 @@ const LootEntry = ({ content, timestamp }: Props) => {
             style={{
               backgroundColor: item.background,
               border: "1px solid black",
-              padding: "10px 20px",
-              minWidth: "150px",
-              margin: "10px",
+              padding: "1em 2em",
+              minWidth: "15me",
+              margin: "1em",
               borderRadius: "10px",
             }}
           >
             <img
               style={{
-                width: "50px",
-                height: "50px",
-                marginRight: "16px",
+                width: "5em",
+                height: "5em",
+                marginRight: "1.6em",
               }}
               src={get_image(item.image)}
               alt={`${item.label}-image`}
             />
-            {item.label}
+            <span
+              style={{
+                fontSize: "1.6em",
+              }}
+            >
+              {item.label}
+            </span>
           </div>
         ))}
       </div>
