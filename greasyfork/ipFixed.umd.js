@@ -959,7 +959,7 @@ var __objRest = (source, exclude) => {
       setTarget(event.target);
       setVisible(true);
     };
-    const onMouseOut = (event) => {
+    const onMouseOut = () => {
       setVisible(false);
       setTarget(null);
     };
@@ -1006,7 +1006,17 @@ var __objRest = (source, exclude) => {
   const formatNumber = (amount) => amount < 1e3 ? `${amount}` : amount < 1e6 ? `${(amount / 1e3).toFixed(5 - Math.floor(Math.log10(amount)))}k` : `${(amount / 1e6).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
   const isNumber = (number) => typeof number === "number";
   const LabeledIPimg = (_c) => {
-    var _d = _c, { name, label, size, style } = _d, rest = __objRest(_d, ["name", "label", "size", "style"]);
+    var _d = _c, {
+      name,
+      label,
+      size,
+      style
+    } = _d, rest = __objRest(_d, [
+      "name",
+      "label",
+      "size",
+      "style"
+    ]);
     return /* @__PURE__ */ React__default["default"].createElement("div", __spreadValues({
       style: __spreadValues({
         display: "flex",
@@ -1032,9 +1042,18 @@ var __objRest = (source, exclude) => {
     brewingLevel
   }) => {
     return /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: { display: "flex", flexDirection: "column", minWidth: "400px", alignItems: "center" }
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "400px",
+        alignItems: "center"
+      }
     }, amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", null, "Brew ", amount, " ", Items.get_pretty_item_name(potion), " (max ", maxAmount, ")") : /* @__PURE__ */ React__default["default"].createElement("div", null, "Can't Brew ", Items.get_pretty_item_name(potion)), /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: { display: "flex", justifyContent: "space-evenly", minWidth: "400px" }
+      style: {
+        display: "flex",
+        justifyContent: "space-evenly",
+        minWidth: "400px"
+      }
     }, ingredients.map((ingredient) => /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
       name: ingredient.item,
       size: 30,
@@ -1313,7 +1332,7 @@ var __objRest = (source, exclude) => {
     })))), /* @__PURE__ */ React.createElement(DrinkToolTip, null), /* @__PURE__ */ React.createElement(BrewToolTip, null), /* @__PURE__ */ React.createElement(ViewToolTip, null));
   };
   const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }) => {
-    const [patchProps, PatchTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", Items.get_pretty_item_name(type)));
+    const [patchProps, PatchTooltip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", Items.get_pretty_item_name(type)));
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
@@ -1325,7 +1344,10 @@ var __objRest = (source, exclude) => {
         width: "100px",
         cursor: stage === 4 ? "pointer" : "default"
       },
-      onClick: plotClick
+      onClick: () => {
+        plotClick();
+        hideTooltip();
+      }
     }, !["none", "0"].includes(type) ? /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, shiny ? /* @__PURE__ */ React__default["default"].createElement("img", {
       src: get_image(`images/shiny.gif`),
       alt: "shiny",
@@ -1438,7 +1460,6 @@ var __objRest = (source, exclude) => {
   };
   const id$7 = "WoodcuttingOverview";
   const WoodcuttingOverview = () => {
-    useIPFDispatch();
     const patches = 3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
     const logs = keysOf(Cooking.LOG_HEAT_MAP);
     const patchData = useTreePatchesObserver(id$7);
@@ -1736,17 +1757,27 @@ var __objRest = (source, exclude) => {
     items,
     miningLevel
   }) => {
-    useIPFDispatch();
     const oilUse = Ores.getOilCost(machine);
     const [machineProps, MachineTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
-      style: { display: "flex", flexDirection: "column", minWidth: "200px", gap: "15px", alignItems: "center" }
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "200px",
+        gap: "15px",
+        alignItems: "center"
+      }
     }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(machine)), /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: { display: "flex", justifyContent: "space-evenly", gap: "10px", minWidth: "200px" }
+      style: {
+        display: "flex",
+        justifyContent: "space-evenly",
+        gap: "10px",
+        minWidth: "200px"
+      }
     }, items.map((item) => /* @__PURE__ */ React__default["default"].createElement(IPimg, {
       name: item,
       size: 30
     })))));
-    const [amount, setAmount] = useNumberItemObserver(machine, "MachineDisplay");
+    const [amount] = useNumberItemObserver(machine, "MachineDisplay");
     const [amountOn, setAmountOn] = useNumberItemObserver(`${machine}_on`, "MachineDisplay");
     const onIncrease = () => {
       if (miningLevel >= level && amountOn < amount) {
@@ -1835,7 +1866,6 @@ var __objRest = (source, exclude) => {
   };
   const id$5 = "MiningOverview";
   const MiningOverview = () => {
-    useIPFDispatch();
     const [oilIn] = useNumberItemObserver("oil_in", id$5);
     const [oilOut, setOilOut] = React$1.useState(Items.getItem("oil_out"));
     const [miningXp] = useNumberItemObserver("mining_xp", id$5);
@@ -1871,7 +1901,7 @@ var __objRest = (source, exclude) => {
     death,
     plotClick
   }) => {
-    const [patchProps, PatchTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", death ? "Dead " : "", Items.get_pretty_item_name(seed)));
+    const [patchProps, PatchTooltip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", death ? "Dead " : "", Items.get_pretty_item_name(seed)));
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
@@ -1883,7 +1913,10 @@ var __objRest = (source, exclude) => {
         width: "100px",
         cursor: stage === 4 ? "pointer" : "default"
       },
-      onClick: plotClick
+      onClick: () => {
+        plotClick();
+        hideTooltip();
+      }
     }, !["none", "0"].includes(seed) ? /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: { height: "100px", width: "100px" }
     }, shiny ? /* @__PURE__ */ React__default["default"].createElement("img", {
@@ -2251,7 +2284,6 @@ var __objRest = (source, exclude) => {
   };
   const id$2 = "FarmingOverview";
   const FarmingOverview = () => {
-    useIPFDispatch();
     const seeds = Object.keys(SEEDS);
     const bones = keysOf(BONES);
     const [bonemeal, setBonemeal] = useNumberItemObserver("bonemeal", id$2);

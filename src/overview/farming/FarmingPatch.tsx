@@ -26,7 +26,7 @@ const FarmingPatch = ({
   death,
   plotClick,
 }: Props) => {
-  const [patchProps, PatchTooltip] = useTooltip(
+  const [patchProps, PatchTooltip, hideTooltip] = useTooltip(
     <span>
       {shiny ? "Shiny " : ""}
       {death ? "Dead " : ""}
@@ -46,7 +46,10 @@ const FarmingPatch = ({
         width: "100px",
         cursor: stage === 4 ? "pointer" : "default",
       }}
-      onClick={plotClick}
+      onClick={() => {
+        plotClick();
+        hideTooltip();
+      }}
     >
       {!["none", "0"].includes(seed) ? (
         <>

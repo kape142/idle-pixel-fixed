@@ -11,7 +11,7 @@ interface Props {
 }
 
 const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }: Props) => {
-  const [patchProps, PatchTooltip] = useTooltip(
+  const [patchProps, PatchTooltip, hideTooltip] = useTooltip(
     <span>
       {shiny ? "Shiny " : ""}
       {Items.get_pretty_item_name(type)}
@@ -30,7 +30,10 @@ const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }: Props) => {
         width: "100px",
         cursor: stage === 4 ? "pointer" : "default",
       }}
-      onClick={plotClick}
+      onClick={() => {
+        plotClick();
+        hideTooltip();
+      }}
     >
       {!["none", "0"].includes(type) ? (
         <>
