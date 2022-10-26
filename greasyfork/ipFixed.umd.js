@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.0
+// @version      1.0.1
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -1058,7 +1058,7 @@ var __objRest = (source, exclude) => {
       name: ingredient.item,
       size: 30,
       style: {
-        color: ingredient.amount < brewingIngredients[ingredient.item].value ? void 0 : "red"
+        color: ingredient.amount <= brewingIngredients[ingredient.item].value ? void 0 : "red"
       },
       label: `${Math.max(amount, 1) * ingredient.amount}/${brewingIngredients[ingredient.item].value}`
     }))), level > brewingLevel ? /* @__PURE__ */ React__default["default"].createElement("div", {

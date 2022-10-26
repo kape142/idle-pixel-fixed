@@ -51,7 +51,7 @@ const BrewingTooltip = ({
             size={30}
             style={{
               color:
-                ingredient.amount < brewingIngredients[ingredient.item].value
+                ingredient.amount <= brewingIngredients[ingredient.item].value
                   ? undefined
                   : "red",
             }}
