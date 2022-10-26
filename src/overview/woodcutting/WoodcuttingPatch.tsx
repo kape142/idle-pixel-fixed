@@ -1,14 +1,22 @@
 import IPimg from "../../util/IPimg";
+import { useTooltip } from "../../util/tooltip/useTooltip";
+import React from "react";
 
 interface Props {
   type: string;
   stage: number;
   timer: number;
+  shiny: number;
   plotClick: () => void;
 }
 
-const id = "WoodcuttingPatch";
-const WoodcuttingPatch = ({ type, stage, timer, plotClick }: Props) => {
+const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }: Props) => {
+  const [patchProps, PatchTooltip] = useTooltip(
+    <span>
+      {shiny ? "Shiny " : ""}
+      {Items.get_pretty_item_name(type)}
+    </span>
+  );
 
   return (
     <div
@@ -20,16 +28,28 @@ const WoodcuttingPatch = ({ type, stage, timer, plotClick }: Props) => {
         borderRadius: "20px",
         height: "120px",
         width: "100px",
+        cursor: stage === 4 ? "pointer" : "default",
       }}
+      onClick={plotClick}
     >
-      {type !== "none" ? (
+      {!["none", "0"].includes(type) ? (
         <>
+          {shiny ? (
+            <img
+              src={get_image(`images/shiny.gif`)}
+              alt={"shiny"}
+              style={{
+                objectFit: "cover",
+                position: "absolute",
+                height: "100px",
+                width: "100px",
+              }}
+            />
+          ) : null}
           <IPimg
-            role="button"
             name={`woodcutting_${type}_${stage}`}
-            onClick={plotClick}
             size={100}
-            style={{}}
+            {...patchProps}
           />
           <span
             style={{
@@ -38,6 +58,7 @@ const WoodcuttingPatch = ({ type, stage, timer, plotClick }: Props) => {
           >
             {stage === 4 ? "READY" : format_time(timer)}
           </span>
+          <PatchTooltip />
         </>
       ) : null}
     </div>

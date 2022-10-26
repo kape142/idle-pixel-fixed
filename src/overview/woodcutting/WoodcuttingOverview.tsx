@@ -1,16 +1,16 @@
-import { useIPFDispatch } from "../../redux/hooks";
 import WoodcuttingPatch from "./WoodcuttingPatch";
 import { useTreePatchesObserver } from "./useTreePatchesObserver";
 import { hideElementById } from "../../util/domOperations";
 import OverviewBox from "../OverviewBox";
+import { keysOf } from "../../util/typeUtils";
+import LogDisplay from "./LogDisplay";
 
 const id = "WoodcuttingOverview";
 const WoodcuttingOverview = () => {
-  const dispatch = useIPFDispatch();
-
   const patches =
     3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
 
+  const logs: string[] = keysOf(Cooking.LOG_HEAT_MAP);
   const patchData = useTreePatchesObserver(id);
 
   const finishedPatches = patchData.reduce(
@@ -21,7 +21,6 @@ const WoodcuttingOverview = () => {
   const plotClick = (index: number) => {
     const { stage, setType, setStage } = patchData[index];
     if (stage === 4) {
-      console.log(finishedPatches);
       if (finishedPatches === 1) {
         hideElementById("notification-woodcutting");
       }
@@ -32,7 +31,18 @@ const WoodcuttingOverview = () => {
   };
 
   return (
-    <OverviewBox height={250} width={550} >
+    <OverviewBox height={250} width={550} justifyContent={"space-between"}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        {logs.map((log) => (
+          <LogDisplay log={log} key={log} />
+        ))}
+      </div>
       <div
         style={{
           display: "flex",
@@ -46,9 +56,7 @@ const WoodcuttingOverview = () => {
           .fill(null)
           .map((v, i) => (
             <WoodcuttingPatch
-              type={patchData[i].type}
-              stage={patchData[i].stage}
-              timer={patchData[i].timer}
+              {...patchData[i]}
               plotClick={() => plotClick(i)}
               key={i + 1}
             />

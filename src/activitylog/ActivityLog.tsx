@@ -1,28 +1,51 @@
 import { useIPFDispatch, useIPFSelector } from "../redux/hooks";
-import { useLocalStorage } from "../util/localstorage/useLocalStorage";
 import ActivityLogEntry from "./ActivityLogEntry";
 import {
   closeActivityLog,
+  openActivityLog,
   selectActivityLogIsOpen,
 } from "./activityLogReducer";
-import { ActivityLogSettings } from "./types";
 import { useActivityLogWebSocketListener } from "./useActivityLogWebsocketListener";
+import {
+  subscribeToKeyboardEvent,
+  unsubscribeFromKeyboardEvent,
+} from "../util/keyboard/keyboardReducer";
+import { useEffect, useState } from "react";
+import ActivityLogSettingsWindow from "./settings/ActivityLogSettingsWindow";
 
 interface Props {}
 
+const id = "ActivityLog";
 const ActivityLog = ({}: Props) => {
-  console.log("activity log render start")
-  const [settings, setSettings] = useLocalStorage<ActivityLogSettings>(
-    "activity-log-settings",
-    { blockDialogues: true },
-    "ActivityLog"
-  );
-
-  const list = useActivityLogWebSocketListener(settings);
+  const list = useActivityLogWebSocketListener();
 
   const open = useIPFSelector(selectActivityLogIsOpen);
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   const dispatch = useIPFDispatch();
-  console.log(open, list)
+
+  useEffect(() => {
+    dispatch(
+      subscribeToKeyboardEvent({
+        key: "Tab",
+        onKeyDown: (event) => {
+          event.preventDefault();
+          if (open) {
+            setSettingsOpen(false);
+            dispatch(closeActivityLog());
+          } else {
+            dispatch(openActivityLog());
+          }
+        },
+        id,
+      })
+    );
+    return () => {
+      dispatch(unsubscribeFromKeyboardEvent({ key: "Tab", id }));
+    };
+  }, [open, dispatch, setSettingsOpen]);
+
   return (
     <>
       {open && (
@@ -37,7 +60,10 @@ const ActivityLog = ({}: Props) => {
           }}
         >
           <div
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              setSettingsOpen(false);
+              event.stopPropagation();
+            }}
             style={{
               position: "absolute",
               top: "10vh",
@@ -55,14 +81,12 @@ const ActivityLog = ({}: Props) => {
             <div>
               <h2 className="color-grey">Activity log</h2>
               <button
-                title={"Toggle showing loot pop-ups. O means they will appear, Ø means they are blocked."}
+                title={"Open settings"}
                 type="button"
-                onClick={() =>
-                  setSettings((set) => ({
-                    ...set,
-                    blockDialogues: !set.blockDialogues,
-                  }))
-                }
+                onClick={(event) => {
+                  setSettingsOpen(!settingsOpen);
+                  event.stopPropagation();
+                }}
                 style={{
                   position: "absolute",
                   top: "10px",
@@ -72,7 +96,7 @@ const ActivityLog = ({}: Props) => {
                   width: "50px",
                 }}
               >
-                {settings.blockDialogues ? "Ø" : "O"}
+                ⚙
               </button>
               <button
                 type="button"
@@ -104,6 +128,10 @@ const ActivityLog = ({}: Props) => {
           </div>
         </div>
       )}
+      <ActivityLogSettingsWindow
+        open={settingsOpen}
+        setOpen={setSettingsOpen}
+      />
     </>
   );
 };

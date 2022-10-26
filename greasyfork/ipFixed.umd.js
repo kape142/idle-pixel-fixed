@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      0.4.1
+// @version      1.0.0
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -86,54 +86,6 @@ var __objRest = (source, exclude) => {
       onClick: () => dispatch(openActivityLog())
     }, "Activity Log")))));
   };
-  const initialState$5 = {
-    subscribers: []
-  };
-  const removeSubscriber$1 = (state, subscriber) => {
-    state.subscribers = state.subscribers.filter((sub) => !(sub.id === subscriber.id && sub.key === subscriber.key));
-    return state;
-  };
-  const localStorageSlice = toolkit.createSlice({
-    name: "Local Storage",
-    initialState: initialState$5,
-    reducers: {
-      subscribeToLocalStorage(state, action) {
-        state = removeSubscriber$1(state, action.payload);
-        state.subscribers.push(action.payload);
-      },
-      unsubscribeFromLocalStorage(state, action) {
-        state = removeSubscriber$1(state, action.payload);
-      }
-    }
-  });
-  const { subscribeToLocalStorage, unsubscribeFromLocalStorage } = localStorageSlice.actions;
-  const selectLocalStorageSubscribers = (state) => state.localStorage.subscribers;
-  var localStorageReducer = localStorageSlice.reducer;
-  const useLocalStorage = (key, initialValue, id2) => {
-    const [value, setValue] = React$1.useState(() => {
-      const prevSaved = window.localStorage.getItem(`${var_username}.${key}`);
-      return prevSaved ? JSON.parse(prevSaved) : initialValue;
-    });
-    const dispatch = useIPFDispatch();
-    const subscribers = useIPFSelector(selectLocalStorageSubscribers);
-    React$1.useEffect(() => {
-      dispatch(subscribeToLocalStorage({
-        setValue,
-        key,
-        id: id2
-      }));
-      return () => {
-        dispatch(unsubscribeFromLocalStorage({ key, id: id2 }));
-      };
-    }, [key, setValue, id2]);
-    React$1.useEffect(() => {
-      window.localStorage.setItem(`${var_username}.${key}`, JSON.stringify(value));
-      subscribers.filter((sub) => sub.key === key).forEach((sub) => {
-        sub.setValue(value);
-      });
-    }, [key, value]);
-    return [value, setValue];
-  };
   const timeSince = (timestamp) => {
     const parsedTimestamp = new Date(timestamp);
     const now = new Date();
@@ -151,6 +103,19 @@ var __objRest = (source, exclude) => {
       return `${Math.floor(days)}d`;
     const years = (now.getTime() - parsedTimestamp.getTime()) / 31536e6;
     return `${Math.floor(years)}y`;
+  };
+  const formatMinutes = (minutes) => {
+    let text = "";
+    if (minutes > 60) {
+      text += `${Math.floor(minutes / 60)} hours`;
+    }
+    if (minutes % 60 !== 0) {
+      if (text.length > 0) {
+        text += ", ";
+      }
+      text += `${minutes % 60} min`;
+    }
+    return text;
   };
   const formatDate = (timestamp) => new Date(timestamp).toLocaleString();
   const LootEntry = ({ content, timestamp }) => {
@@ -213,6 +178,10 @@ var __objRest = (source, exclude) => {
     ActivityLogItemType2["COOK"] = "COOK";
     return ActivityLogItemType2;
   })(ActivityLogItemType || {});
+  const initialActivitLogSettings = {
+    blockDialogues: true,
+    showInOverview: false
+  };
   const removeEmpty = (it) => it !== void 0 && it !== null;
   const toggleInArray = (array, item) => {
     const i = array.indexOf(item);
@@ -304,6 +273,54 @@ var __objRest = (source, exclude) => {
       default:
         return null;
     }
+  };
+  const initialState$5 = {
+    subscribers: []
+  };
+  const removeSubscriber$1 = (state, subscriber) => {
+    state.subscribers = state.subscribers.filter((sub) => !(sub.id === subscriber.id && sub.key === subscriber.key));
+    return state;
+  };
+  const localStorageSlice = toolkit.createSlice({
+    name: "Local Storage",
+    initialState: initialState$5,
+    reducers: {
+      subscribeToLocalStorage(state, action) {
+        state = removeSubscriber$1(state, action.payload);
+        state.subscribers.push(action.payload);
+      },
+      unsubscribeFromLocalStorage(state, action) {
+        state = removeSubscriber$1(state, action.payload);
+      }
+    }
+  });
+  const { subscribeToLocalStorage, unsubscribeFromLocalStorage } = localStorageSlice.actions;
+  const selectLocalStorageSubscribers = (state) => state.localStorage.subscribers;
+  var localStorageReducer = localStorageSlice.reducer;
+  const useLocalStorage = (key, initialValue, id2) => {
+    const [value, setValue] = React$1.useState(() => {
+      const prevSaved = window.localStorage.getItem(`${var_username}.${key}`);
+      return prevSaved ? JSON.parse(prevSaved) : initialValue;
+    });
+    const dispatch = useIPFDispatch();
+    const subscribers = useIPFSelector(selectLocalStorageSubscribers);
+    React$1.useEffect(() => {
+      dispatch(subscribeToLocalStorage({
+        setValue,
+        key,
+        id: id2
+      }));
+      return () => {
+        dispatch(unsubscribeFromLocalStorage({ key, id: id2 }));
+      };
+    }, [key, setValue, id2]);
+    React$1.useEffect(() => {
+      window.localStorage.setItem(`${var_username}.${key}`, JSON.stringify(value));
+      subscribers.filter((sub) => sub.key === key).forEach((sub) => {
+        sub.setValue(value);
+      });
+    }, [key, value]);
+    return [value, setValue];
   };
   const initialState$4 = {
     consumers: []
@@ -398,17 +415,18 @@ var __objRest = (source, exclude) => {
     });
     return acc;
   }, []).map((t) => t);
-  const useActivityLogWebSocketListener = (settings) => {
-    const [list, setList] = useLocalStorage("activity-log", [], "useActivityLogWebSocketListener");
+  const id$c = "useActivityLogWebSocketListener";
+  const useActivityLogWebSocketListener = () => {
+    const [settings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$c);
+    const [list, setList] = useLocalStorage("activity-log", [], id$c);
+    const addItem = (item) => setList((list2) => [item].concat(list2).slice(0, 200));
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
     const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
-      const activityLogItem = lootDialogueParser(data);
-      setList((list2) => [activityLogItem].concat(list2));
+      addItem(lootDialogueParser(data));
     }), [onMessageFactory]);
     useWebsocket(onLootMessage, 1e3, "useActivityLogWebSocketListener-Loot");
     const onCookedMessage = React$1.useMemo(() => onMessageFactory("COOKING_RESULTS", (data) => {
-      const activityLogItem = cookDialogueParser(data);
-      setList((list2) => [activityLogItem].concat(list2));
+      addItem(cookDialogueParser(data));
     }), [onMessageFactory]);
     useWebsocket(onCookedMessage, 1e3, "useActivityLogWebSocketListener-Cook");
     return list;
@@ -442,13 +460,134 @@ var __objRest = (source, exclude) => {
       }
     };
   };
+  const initialState$3 = {
+    subscribers: []
+  };
+  const removeSubscriber = (state, subscriber) => {
+    state.subscribers = state.subscribers.filter((sub) => !(sub.id === subscriber.id && sub.key === subscriber.key));
+    return state;
+  };
+  const keyboardSlice = toolkit.createSlice({
+    name: "Keyboard",
+    initialState: initialState$3,
+    reducers: {
+      subscribeToKeyboardEvent(state, action) {
+        state = removeSubscriber(state, action.payload);
+        state.subscribers.push(action.payload);
+      },
+      unsubscribeFromKeyboardEvent(state, action) {
+        state = removeSubscriber(state, action.payload);
+      }
+    }
+  });
+  const { subscribeToKeyboardEvent, unsubscribeFromKeyboardEvent } = keyboardSlice.actions;
+  var keyboardReducer = keyboardSlice.reducer;
+  const ActivityLogSetting = ({ text, value, onClick }) => {
+    return /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "20vw",
+        border: "1px solid grey",
+        borderRadius: "10px",
+        padding: "10px"
+      }
+    }, /* @__PURE__ */ React.createElement("span", null, text), /* @__PURE__ */ React.createElement(IPimg, {
+      name: value ? "gold" : "stone",
+      onClick: () => {
+        onClick();
+      }
+    }));
+  };
+  const keysOf = (record) => Object.keys(record).filter((key) => record.hasOwnProperty(key)).map((record2) => record2);
+  const settingTexts = {
+    blockDialogues: "Block loot pop-ups",
+    showInOverview: "Show activity log in Overview"
+  };
+  const id$b = "ActivityLogSettingsWindow";
+  const ActivityLogSettingsWindow = ({ open, setOpen }) => {
+    const [settings, setSettings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$b);
+    const toggleSetting = (name) => {
+      setSettings((oldValue) => __spreadProps(__spreadValues({}, oldValue), { [name]: !oldValue[name] }));
+    };
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
+      onClick: (event) => {
+        event.stopPropagation();
+        setOpen(false);
+      },
+      style: {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      onClick: (event) => event.stopPropagation(),
+      style: {
+        position: "absolute",
+        top: "15vh",
+        left: "30vw",
+        width: "40vw",
+        height: "30vh",
+        textAlign: "center",
+        border: "1px solid grey",
+        backgroundColor: "#e5fbff",
+        borderRadius: "20px",
+        padding: "20px",
+        zIndex: 1e4
+      }
+    }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", {
+      className: "color-grey"
+    }, "Settings"), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "10px"
+      }
+    }, keysOf(initialActivitLogSettings).map((key) => /* @__PURE__ */ React.createElement(ActivityLogSetting, {
+      text: settingTexts[key],
+      value: settings[key],
+      onClick: () => toggleSetting(key)
+    }))), /* @__PURE__ */ React.createElement("button", {
+      type: "button",
+      onClick: () => setOpen(false),
+      style: {
+        position: "absolute",
+        top: "10px",
+        right: "10px",
+        backgroundColor: "#e01e1e",
+        borderRadius: "5px",
+        width: "50px"
+      }
+    }, "X")))));
+  };
+  const id$a = "ActivityLog";
   const ActivityLog = ({}) => {
-    console.log("activity log render start");
-    const [settings, setSettings] = useLocalStorage("activity-log-settings", { blockDialogues: true }, "ActivityLog");
-    const list = useActivityLogWebSocketListener(settings);
+    const list = useActivityLogWebSocketListener();
     const open = useIPFSelector(selectActivityLogIsOpen);
+    const [settingsOpen, setSettingsOpen] = React$1.useState(false);
     const dispatch = useIPFDispatch();
-    console.log(open, list);
+    React$1.useEffect(() => {
+      dispatch(subscribeToKeyboardEvent({
+        key: "Tab",
+        onKeyDown: (event) => {
+          event.preventDefault();
+          if (open) {
+            setSettingsOpen(false);
+            dispatch(closeActivityLog());
+          } else {
+            dispatch(openActivityLog());
+          }
+        },
+        id: id$a
+      }));
+      return () => {
+        dispatch(unsubscribeFromKeyboardEvent({ key: "Tab", id: id$a }));
+      };
+    }, [open, dispatch, setSettingsOpen]);
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
       onClick: () => dispatch(closeActivityLog()),
       style: {
@@ -459,7 +598,10 @@ var __objRest = (source, exclude) => {
         height: "100%"
       }
     }, /* @__PURE__ */ React.createElement("div", {
-      onClick: (event) => event.stopPropagation(),
+      onClick: (event) => {
+        setSettingsOpen(false);
+        event.stopPropagation();
+      },
       style: {
         position: "absolute",
         top: "10vh",
@@ -476,11 +618,12 @@ var __objRest = (source, exclude) => {
     }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h2", {
       className: "color-grey"
     }, "Activity log"), /* @__PURE__ */ React.createElement("button", {
-      title: "Toggle showing loot pop-ups. O means they will appear, \xD8 means they are blocked.",
+      title: "Open settings",
       type: "button",
-      onClick: () => setSettings((set) => __spreadProps(__spreadValues({}, set), {
-        blockDialogues: !set.blockDialogues
-      })),
+      onClick: (event) => {
+        setSettingsOpen(!settingsOpen);
+        event.stopPropagation();
+      },
       style: {
         position: "absolute",
         top: "10px",
@@ -489,7 +632,7 @@ var __objRest = (source, exclude) => {
         borderRadius: "5px",
         width: "50px"
       }
-    }, settings.blockDialogues ? "\xD8" : "O"), /* @__PURE__ */ React.createElement("button", {
+    }, "\u2699"), /* @__PURE__ */ React.createElement("button", {
       type: "button",
       onClick: () => dispatch(closeActivityLog()),
       style: {
@@ -509,7 +652,10 @@ var __objRest = (source, exclude) => {
       }
     }, list.map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
       item
-    }))))));
+    }))))), /* @__PURE__ */ React.createElement(ActivityLogSettingsWindow, {
+      open: settingsOpen,
+      setOpen: setSettingsOpen
+    }));
   };
   const ID_SYMBOLS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const makeId = (length) => {
@@ -519,12 +665,12 @@ var __objRest = (source, exclude) => {
     }
     return text;
   };
-  const initialState$3 = {
+  const initialState$2 = {
     isOpen: false
   };
   const overviewSlice = toolkit.createSlice({
     name: "Overview",
-    initialState: initialState$3,
+    initialState: initialState$2,
     reducers: {
       openOverview(state) {
         state.isOpen = true;
@@ -537,7 +683,7 @@ var __objRest = (source, exclude) => {
   const { openOverview, closeOverview } = overviewSlice.actions;
   const selectOverviewIsOpen = (state) => state.overview.isOpen;
   var overviewReducer = overviewSlice.reducer;
-  const initialState$2 = {
+  const initialState$1 = {
     observers: []
   };
   const removeObserver = (state, observerId) => {
@@ -546,7 +692,7 @@ var __objRest = (source, exclude) => {
   };
   const setItemsSlice = toolkit.createSlice({
     name: "Set items",
-    initialState: initialState$2,
+    initialState: initialState$1,
     reducers: {
       addSetItemsObserver(state, action) {
         removeObserver(state, action.payload.id);
@@ -560,28 +706,6 @@ var __objRest = (source, exclude) => {
   const { addSetItemsObserver, removeSetItemsObserver } = setItemsSlice.actions;
   const selectSetItemsObservers = (state) => state.setItems.observers;
   var setItemsReducer = setItemsSlice.reducer;
-  const initialState$1 = {
-    subscribers: []
-  };
-  const removeSubscriber = (state, subscriber) => {
-    state.subscribers = state.subscribers.filter((sub) => !(sub.id === subscriber.id && sub.key === subscriber.key));
-    return state;
-  };
-  const keyboardSlice = toolkit.createSlice({
-    name: "Keyboard",
-    initialState: initialState$1,
-    reducers: {
-      subscribeToKeyboardEvent(state, action) {
-        state = removeSubscriber(state, action.payload);
-        state.subscribers.push(action.payload);
-      },
-      unsubscribeFromKeyboardEvent(state, action) {
-        state = removeSubscriber(state, action.payload);
-      }
-    }
-  });
-  const { subscribeToKeyboardEvent, unsubscribeFromKeyboardEvent } = keyboardSlice.actions;
-  var keyboardReducer = keyboardSlice.reducer;
   const initialState = {
     ctrlKey: false,
     shiftKey: false
@@ -591,7 +715,6 @@ var __objRest = (source, exclude) => {
     initialState,
     reducers: {
       ctrlKeyDown(state) {
-        console.log("ctrlkeydown in reducer");
         state.ctrlKey = true;
       },
       ctrlKeyUp(state) {
@@ -602,15 +725,14 @@ var __objRest = (source, exclude) => {
       },
       shiftKeyUp(state) {
         state.shiftKey = false;
+      },
+      resetModifierKeys(state) {
+        state.ctrlKey = false;
+        state.shiftKey = false;
       }
     }
   });
-  const {
-    ctrlKeyDown,
-    ctrlKeyUp,
-    shiftKeyDown,
-    shiftKeyUp
-  } = modifierKeySlice.actions;
+  const { ctrlKeyDown, ctrlKeyUp, shiftKeyDown, shiftKeyUp, resetModifierKeys } = modifierKeySlice.actions;
   const selectModifierKeys = (state) => state.modifierKey;
   var modiferKeyReducer = modifierKeySlice.reducer;
   const store = toolkit.configureStore({
@@ -702,8 +824,8 @@ var __objRest = (source, exclude) => {
       className: "w20"
     }), /* @__PURE__ */ React.createElement("span", null, "OVERVIEW"));
   };
-  const useNumberItemObserver = (item, id2) => {
-    const [value, setValue] = useItemObserver(item, id2);
+  const useNumberItemObserver = (item, id2, specialCase = (_) => false) => {
+    const [value, setValue] = useItemObserver(item, id2, (value2) => specialCase(Number(value2)));
     return [
       Number(value),
       (newValue) => {
@@ -712,13 +834,16 @@ var __objRest = (source, exclude) => {
       }
     ];
   };
-  const useItemObserver = (item, id2) => {
+  const useItemObserver = (item, id2, specialCase = (_) => false) => {
     const [value, setValue] = React$1.useState(Items.getItem(item).toString());
     const trueValue = React$1.useRef(Items.getItem(item).toString());
     const itemId = `${id2}-${item}`;
     const [forceTrueValueTimeout, setForceTrueValueTimeout] = React$1.useState(null);
     const setTrueValue = React$1.useCallback((newValue) => {
-      if (value === trueValue.current) {
+      const override = specialCase(newValue);
+      if (override) {
+        setValue(newValue);
+      } else if (value === trueValue.current) {
         setValue(newValue);
       } else {
         if (!forceTrueValueTimeout) {
@@ -801,6 +926,9 @@ var __objRest = (source, exclude) => {
     super_stardust_potion: __spreadValues({
       level: 25
     }, getData("super_stardust_potion")),
+    gathering_unique_potion: __spreadValues({
+      level: 27
+    }, getData("gathering_unique_potion")),
     heat_potion: __spreadValues({
       level: 30
     }, getData("heat_potion")),
@@ -815,14 +943,19 @@ var __objRest = (source, exclude) => {
     }, getData("super_rare_monster_potion")),
     ultra_stardust_potion: __spreadValues({
       level: 50
-    }, getData("ultra_stardust_potion"))
+    }, getData("ultra_stardust_potion")),
+    rocket_potion: __spreadValues({
+      level: 55
+    }, getData("rocket_potion")),
+    titanium_potion: __spreadValues({
+      level: 60
+    }, getData("titanium_potion"))
   };
   const useTooltip = (regular, shift, ctrl) => {
     const { ctrlKey, shiftKey } = useIPFSelector(selectModifierKeys);
     const [visible, setVisible] = React$1.useState(false);
     const [target, setTarget] = React$1.useState(null);
     const onMouseOver = (event) => {
-      console.log(event);
       setTarget(event.target);
       setVisible(true);
     };
@@ -842,25 +975,96 @@ var __objRest = (source, exclude) => {
           backgroundColor: "rgba(0, 0, 0, 0.9)",
           padding: "10px",
           color: "white",
-          zIndex: 100
+          zIndex: 100,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between"
         }
-      }, ctrlKey && ctrl ? ctrl : shiftKey && shift ? shift : regular))
+      }, shiftKey && shift ? shift : ctrlKey && ctrl ? ctrl : regular, ctrl || shift ? /* @__PURE__ */ React.createElement("div", {
+        style: {
+          display: "flex",
+          justifyContent: "space-evenly",
+          gap: "30px"
+        }
+      }, /* @__PURE__ */ React.createElement("span", {
+        style: {
+          color: !ctrlKey && !shiftKey ? "#1a9d1a" : "#dddddd"
+        }
+      }, "[none]"), shift && /* @__PURE__ */ React.createElement("span", {
+        style: { color: shiftKey ? "#1a9d1a" : "#dddddd" }
+      }, "[shift]"), ctrl && /* @__PURE__ */ React.createElement("span", {
+        style: {
+          color: !shiftKey && ctrlKey ? "#1a9d1a" : "#dddddd"
+        }
+      }, "[ctrl]")) : null)),
+      () => {
+        setVisible(false);
+        setTarget(null);
+      }
     ];
   };
-  const PotionDisplay = ({ potionName, toggle, view, favorite }) => {
+  const formatNumber = (amount) => amount < 1e3 ? `${amount}` : amount < 1e6 ? `${(amount / 1e3).toFixed(5 - Math.floor(Math.log10(amount)))}k` : `${(amount / 1e6).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
+  const isNumber = (number) => typeof number === "number";
+  const LabeledIPimg = (_c) => {
+    var _d = _c, { name, label, size, style } = _d, rest = __objRest(_d, ["name", "label", "size", "style"]);
+    return /* @__PURE__ */ React__default["default"].createElement("div", __spreadValues({
+      style: __spreadValues({
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column",
+        width: `${(size != null ? size : 0) + 20}px`,
+        justifyContent: "flex-end",
+        alignItems: "center",
+        height: "100%"
+      }, style)
+    }, rest), /* @__PURE__ */ React__default["default"].createElement(IPimg, {
+      name,
+      size
+    }), /* @__PURE__ */ React__default["default"].createElement("span", null, isNumber(label) ? formatNumber(label) : label));
+  };
+  const BrewingTooltip = ({
+    potion,
+    amount,
+    maxAmount,
+    ingredients,
+    brewingIngredients,
+    level,
+    brewingLevel
+  }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", minWidth: "400px", alignItems: "center" }
+    }, amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", null, "Brew ", amount, " ", Items.get_pretty_item_name(potion), " (max ", maxAmount, ")") : /* @__PURE__ */ React__default["default"].createElement("div", null, "Can't Brew ", Items.get_pretty_item_name(potion)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", justifyContent: "space-evenly", minWidth: "400px" }
+    }, ingredients.map((ingredient) => /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: ingredient.item,
+      size: 30,
+      style: {
+        color: ingredient.amount < brewingIngredients[ingredient.item].value ? void 0 : "red"
+      },
+      label: `${Math.max(amount, 1) * ingredient.amount}/${brewingIngredients[ingredient.item].value}`
+    }))), level > brewingLevel ? /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { color: "red" }
+    }, "Required brewing level ", brewingLevel, "/", level) : null);
+  };
+  const PotionDisplay = ({
+    potionName,
+    toggle,
+    view,
+    favorite,
+    brewingLevel,
+    brewingIngredients
+  }) => {
     const [amount, setAmount] = useNumberItemObserver(potionName, "PotionDisplay");
     const [timer, setTimer] = useNumberItemObserver(`${potionName}_timer`, "PotionDisplay");
     const hasPotionStacker = Number(Items.getItem("donor_potion_stacker_timestamp")) === 1;
     const hasEasyAchievement = Achievements.has_completed_set("brewing", "medium");
     const maxPotions = 1 + (hasPotionStacker ? 1 : 0) + (hasEasyAchievement ? 1 : 0);
-    const { getTime, ingredients } = POTIONS[potionName];
+    const { getTime, ingredients, level } = POTIONS[potionName];
     const potionTimer = getTime();
-    const getMakeable = () => ingredients.reduce((acc, cur) => Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc), Number.MAX_SAFE_INTEGER);
+    const getMakeable = () => brewingLevel >= level ? ingredients.reduce((acc, cur) => Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc), Number.MAX_SAFE_INTEGER) : 0;
     const isDrinkable = amount > 0 && (timer < potionTimer * (maxPotions - 1) || timer === 0);
     const onDrinkClick = () => {
-      console.log(amount, timer, potionTimer, maxPotions);
       if (isDrinkable) {
-        setAmount(amount - 1);
         setTimer(timer + potionTimer);
         updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
         setTimeout(() => {
@@ -883,7 +1087,21 @@ var __objRest = (source, exclude) => {
       }
     };
     const [drinkProps, DrinkToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, "Drink ", Items.get_pretty_item_name(potionName)));
-    const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, "Brew ", Items.get_pretty_item_name(potionName)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Brew ", getMakeable(), " ", Items.get_pretty_item_name(potionName)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Brew ", Math.min(getMakeable(), 5), " ", Items.get_pretty_item_name(potionName)));
+    const tooltipProps = {
+      potion: potionName,
+      maxAmount: getMakeable(),
+      ingredients,
+      brewingIngredients,
+      brewingLevel,
+      level
+    };
+    const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
+      amount: Math.min(1, getMakeable())
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
+      amount: getMakeable()
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
+      amount: Math.min(5, getMakeable())
+    }, tooltipProps)));
     const [viewProps, ViewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, favorite ? "Hide" : "Show", " ", Items.get_pretty_item_name(potionName)));
     const imgProps = view === BrewingView.DRINK ? drinkProps : view === BrewingView.BREW ? brewProps : viewProps;
     const onClick = view === BrewingView.DRINK ? onDrinkClick : view === BrewingView.BREW ? onBrewClick : toggle;
@@ -908,7 +1126,6 @@ var __objRest = (source, exclude) => {
     }), /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: potionName,
       size: 30,
-      title: view === BrewingView.BREW ? `Max ${getMakeable()}` : Items.get_pretty_item_name(potionName),
       onClick,
       role: "button",
       style: view === BrewingView.BREW && getMakeable() === 0 || view === BrewingView.DRINK && !isDrinkable ? {
@@ -927,22 +1144,85 @@ var __objRest = (source, exclude) => {
         margin: "0 0 40px 25px",
         height: "30px"
       }
-    }, "+")), amount > 0 && /* @__PURE__ */ React__default["default"].createElement(DrinkToolTip, null), getMakeable() > 0 && /* @__PURE__ */ React__default["default"].createElement(BrewToolTip, null), /* @__PURE__ */ React__default["default"].createElement(ViewToolTip, null));
+    }, "+")), isDrinkable && /* @__PURE__ */ React__default["default"].createElement(DrinkToolTip, null), /* @__PURE__ */ React__default["default"].createElement(BrewToolTip, null), /* @__PURE__ */ React__default["default"].createElement(ViewToolTip, null));
   };
-  const OverviewBox = (_c) => {
-    var _d = _c, { width, height, children } = _d, style = __objRest(_d, ["width", "height", "children"]);
+  const OverviewBox = (_e) => {
+    var _f = _e, { width, height, children } = _f, style = __objRest(_f, ["width", "height", "children"]);
     return /* @__PURE__ */ React.createElement("div", {
       style: __spreadValues({
         display: "flex",
         height: `${height}px`,
         width: `${width}px`,
         gap: "5px",
-        border: "1px solid black",
         flexDirection: "column",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        borderRadius: "30px",
+        backgroundColor: "#b1d6dc",
+        border: "10px solid #b1d6dc",
+        boxSizing: "content-box"
       }, style)
     }, children);
+  };
+  const useBrewingIngredientsObserver = (id2) => {
+    const hookId = `useBrewingIngredientsObserver-${id2}`;
+    const [dottedGreenLeaf, setDottedGreenLeaf] = useNumberItemObserver(`dotted_green_leaf`, hookId);
+    const [redMushroom, setRedMushroom] = useNumberItemObserver(`red_mushroom`, hookId);
+    const [greenLeaf, setGreenLeaf] = useNumberItemObserver(`green_leaf`, hookId);
+    const [limeLeaf, setLimeLeaf] = useNumberItemObserver(`lime_leaf`, hookId);
+    const [strangeLeaf, setStrangeLeaf] = useNumberItemObserver(`strange_leaf`, hookId);
+    const [goldLeaf, setGoldLeaf] = useNumberItemObserver(`gold_leaf`, hookId);
+    const [bones, setBones] = useNumberItemObserver(`bones`, hookId);
+    const [promethium, setPromethium] = useNumberItemObserver(`promethium`, hookId);
+    const [rocketFuel, setRocketFuel] = useNumberItemObserver(`rocket_fuel`, hookId);
+    const [moonstone, setMoonstone] = useNumberItemObserver(`moonstone`, hookId);
+    const [titanium, setTitanium] = useNumberItemObserver(`titanium`, hookId);
+    return {
+      dotted_green_leaf: {
+        value: dottedGreenLeaf,
+        setValue: setDottedGreenLeaf
+      },
+      red_mushroom: {
+        value: redMushroom,
+        setValue: setRedMushroom
+      },
+      green_leaf: {
+        value: greenLeaf,
+        setValue: setGreenLeaf
+      },
+      lime_leaf: {
+        value: limeLeaf,
+        setValue: setLimeLeaf
+      },
+      strange_leaf: {
+        value: strangeLeaf,
+        setValue: setStrangeLeaf
+      },
+      gold_leaf: {
+        value: goldLeaf,
+        setValue: setGoldLeaf
+      },
+      bones: {
+        value: bones,
+        setValue: setBones
+      },
+      promethium: {
+        value: promethium,
+        setValue: setPromethium
+      },
+      rocket_fuel: {
+        value: rocketFuel,
+        setValue: setRocketFuel
+      },
+      moonstone: {
+        value: moonstone,
+        setValue: setMoonstone
+      },
+      titanium: {
+        value: titanium,
+        setValue: setTitanium
+      }
+    };
   };
   var BrewingView = /* @__PURE__ */ ((BrewingView2) => {
     BrewingView2["DRINK"] = "DRINK";
@@ -950,11 +1230,13 @@ var __objRest = (source, exclude) => {
     BrewingView2["FAVORITE"] = "FAVORITE";
     return BrewingView2;
   })(BrewingView || {});
+  const id$9 = "BrewingOverview";
   const BrewingOverview = ({}) => {
-    useIPFDispatch();
     const [view, setView] = React$1.useState("DRINK");
     const potions = Object.keys(POTIONS);
-    const [favorites, setFavorites] = useLocalStorage("brewing-favorites", potions, "PotionDisplay");
+    const brewingIngredients = useBrewingIngredientsObserver(id$9);
+    const [favorites, setFavorites] = useLocalStorage("brewing-favorites", potions.slice(0, 15), id$9);
+    const [brewingXp] = useNumberItemObserver("brewing_xp", id$9);
     const toggle = (potionName) => () => {
       setFavorites((favs) => {
         favs = toggleInArray(favs, potionName);
@@ -964,13 +1246,13 @@ var __objRest = (source, exclude) => {
     const viewSelectorStyle = (selectorView) => ({
       opacity: view === selectorView ? 0.3 : 1
     });
-    const onMessage = React$1.useMemo(() => replaceWebSocketMessage("OPEN_DIALOGUE", (data) => {
+    const blockPopup = React$1.useMemo(() => replaceWebSocketMessage("OPEN_DIALOGUE", (data) => {
       if (data.split("~")[0] === "INGREDIENTS USED") {
         return "";
       }
       return data;
     }), []);
-    useWebsocket(onMessage, 1, "BrewingOverview");
+    useWebsocket(blockPopup, 1, id$9);
     const [drinkProps, DrinkToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Drink potions"));
     const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Brew potions"));
     const [viewProps, ViewToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Hide/show potions"));
@@ -1017,18 +1299,22 @@ var __objRest = (source, exclude) => {
       style: {
         display: "flex",
         flexWrap: "wrap",
-        alignContent: "flex-start"
+        alignContent: "flex-start",
+        overflowY: "auto"
       }
     }, (view === "FAVORITE" ? potions : favorites).map((potion) => /* @__PURE__ */ React.createElement(PotionDisplay, {
+      brewingLevel: get_level(brewingXp),
       key: potion,
       potionName: potion,
       toggle: toggle(potion),
       view,
-      favorite: favorites.includes(potion)
+      favorite: favorites.includes(potion),
+      brewingIngredients
     })))), /* @__PURE__ */ React.createElement(DrinkToolTip, null), /* @__PURE__ */ React.createElement(BrewToolTip, null), /* @__PURE__ */ React.createElement(ViewToolTip, null));
   };
-  const WoodcuttingPatch = ({ type, stage, timer, plotClick }) => {
-    return /* @__PURE__ */ React.createElement("div", {
+  const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }) => {
+    const [patchProps, PatchTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", Items.get_pretty_item_name(type)));
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1036,19 +1322,27 @@ var __objRest = (source, exclude) => {
         backgroundImage: `url(${get_image("images/background_grass.png")}`,
         borderRadius: "20px",
         height: "120px",
+        width: "100px",
+        cursor: stage === 4 ? "pointer" : "default"
+      },
+      onClick: plotClick
+    }, !["none", "0"].includes(type) ? /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, shiny ? /* @__PURE__ */ React__default["default"].createElement("img", {
+      src: get_image(`images/shiny.gif`),
+      alt: "shiny",
+      style: {
+        objectFit: "cover",
+        position: "absolute",
+        height: "100px",
         width: "100px"
       }
-    }, type !== "none" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(IPimg, {
-      role: "button",
+    }) : null, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: `woodcutting_${type}_${stage}`,
-      onClick: plotClick,
-      size: 100,
-      style: {}
-    }), /* @__PURE__ */ React.createElement("span", {
+      size: 100
+    }, patchProps)), /* @__PURE__ */ React__default["default"].createElement("span", {
       style: {
         color: "white"
       }
-    }, stage === 4 ? "READY" : format_time(timer))) : null);
+    }, stage === 4 ? "READY" : format_time(timer)), /* @__PURE__ */ React__default["default"].createElement(PatchTooltip, null)) : null);
   };
   const useTreePatchesObserver = (id2) => {
     const hookId = `useTreePatchesObserver-${id2}`;
@@ -1067,6 +1361,11 @@ var __objRest = (source, exclude) => {
     const [timer3, setTimer3] = useNumberItemObserver(`tree_timer_3`, hookId);
     const [timer4, setTimer4] = useNumberItemObserver(`tree_timer_4`, hookId);
     const [timer5, setTimer5] = useNumberItemObserver(`tree_timer_5`, hookId);
+    const [shiny1, setShiny1] = useNumberItemObserver(`tree_shiny_1`, hookId);
+    const [shiny2, setShiny2] = useNumberItemObserver(`tree_shiny_2`, hookId);
+    const [shiny3, setShiny3] = useNumberItemObserver(`tree_shiny_3`, hookId);
+    const [shiny4, setShiny4] = useNumberItemObserver(`tree_shiny_4`, hookId);
+    const [shiny5, setShiny5] = useNumberItemObserver(`tree_shiny_5`, hookId);
     return [
       {
         stage: stage1,
@@ -1074,7 +1373,9 @@ var __objRest = (source, exclude) => {
         type: type1,
         setType: setType1,
         timer: timer1,
-        setTimer: setTimer1
+        setTimer: setTimer1,
+        shiny: shiny1,
+        setShiny: setShiny1
       },
       {
         stage: stage2,
@@ -1082,7 +1383,9 @@ var __objRest = (source, exclude) => {
         type: type2,
         setType: setType2,
         timer: timer2,
-        setTimer: setTimer2
+        setTimer: setTimer2,
+        shiny: shiny2,
+        setShiny: setShiny2
       },
       {
         stage: stage3,
@@ -1090,7 +1393,9 @@ var __objRest = (source, exclude) => {
         type: type3,
         setType: setType3,
         timer: timer3,
-        setTimer: setTimer3
+        setTimer: setTimer3,
+        shiny: shiny3,
+        setShiny: setShiny3
       },
       {
         stage: stage4,
@@ -1098,7 +1403,9 @@ var __objRest = (source, exclude) => {
         type: type4,
         setType: setType4,
         timer: timer4,
-        setTimer: setTimer4
+        setTimer: setTimer4,
+        shiny: shiny4,
+        setShiny: setShiny4
       },
       {
         stage: stage5,
@@ -1106,20 +1413,39 @@ var __objRest = (source, exclude) => {
         type: type5,
         setType: setType5,
         timer: timer5,
-        setTimer: setTimer5
+        setTimer: setTimer5,
+        shiny: shiny5,
+        setShiny: setShiny5
       }
     ];
   };
-  const id$6 = "WoodcuttingOverview";
+  const id$8 = "LogDisplay";
+  const LogDisplay = ({ log }) => {
+    const [amount] = useNumberItemObserver(log, id$8);
+    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "5px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: log,
+      size: 30,
+      title: Items.get_pretty_item_name(log)
+    }), /* @__PURE__ */ React.createElement("span", null, amount)) : null;
+  };
+  const id$7 = "WoodcuttingOverview";
   const WoodcuttingOverview = () => {
     useIPFDispatch();
     const patches = 3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
-    const patchData = useTreePatchesObserver(id$6);
+    const logs = keysOf(Cooking.LOG_HEAT_MAP);
+    const patchData = useTreePatchesObserver(id$7);
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const plotClick = (index) => {
       const { stage, setType, setStage } = patchData[index];
       if (stage === 4) {
-        console.log(finishedPatches);
         if (finishedPatches === 1) {
           hideElementById("notification-woodcutting");
         }
@@ -1130,8 +1456,18 @@ var __objRest = (source, exclude) => {
     };
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: 250,
-      width: 550
+      width: 550,
+      justifyContent: "space-between"
     }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "center",
+        flexWrap: "wrap"
+      }
+    }, logs.map((log) => /* @__PURE__ */ React.createElement(LogDisplay, {
+      log,
+      key: log
+    }))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         alignItems: "center",
@@ -1139,23 +1475,68 @@ var __objRest = (source, exclude) => {
         justifyContent: "center",
         gap: "10px"
       }
-    }, Array(patches).fill(null).map((v, i) => /* @__PURE__ */ React.createElement(WoodcuttingPatch, {
-      type: patchData[i].type,
-      stage: patchData[i].stage,
-      timer: patchData[i].timer,
+    }, Array(patches).fill(null).map((v, i) => /* @__PURE__ */ React.createElement(WoodcuttingPatch, __spreadProps(__spreadValues({}, patchData[i]), {
       plotClick: () => plotClick(i),
       key: i + 1
-    }))));
+    })))));
   };
-  const OreDisplay = ({ ore, disabled, setSmelting, oil }) => {
+  const OreTooltip = ({
+    ore,
+    amount,
+    oilPerBar,
+    charcoalPerBar,
+    lavaPerBar
+  }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minWidth: "300px"
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Smelt ", amount, " ", Items.get_pretty_item_name(ore)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", justifyContent: "space-evenly" }
+    }, oilPerBar > 0 && /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: "oil",
+      size: 30,
+      label: oilPerBar * amount
+    }), charcoalPerBar > 0 && /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: "charcoal",
+      size: 30,
+      label: charcoalPerBar * amount
+    }), lavaPerBar > 0 && /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: "lava",
+      size: 30,
+      label: lavaPerBar * amount
+    })));
+  };
+  const OreDisplay = ({
+    ore,
+    disabled,
+    setSmelting,
+    oil,
+    setOil,
+    charcoal,
+    setCharcoal,
+    lava,
+    setLava
+  }) => {
     const furnaceCapacity = Number(Furnace.getFurnaceCapacity());
     const [amount, setAmount] = useNumberItemObserver(ore, `OreDisplay-${ore}`);
     const oilPerBar = Crafting.getOilPerBar(ore);
+    const charcoalPerBar = Crafting.getCharcoalPerBar(ore);
+    const lavaPerBar = Crafting.getLavaPerBar(ore);
+    const getSmeltable = () => {
+      const maxAmountOil = Math.floor(Math.min(oil / oilPerBar || Infinity, amount));
+      const maxAmountCharcoal = Math.floor(Math.min(charcoal / charcoalPerBar || Infinity, amount));
+      const maxAmountLava = Math.floor(Math.min(lava / lavaPerBar || Infinity, amount));
+      const maxAmount = Math.min(maxAmountOil, maxAmountCharcoal, maxAmountLava);
+      return Math.min(furnaceCapacity, maxAmount);
+    };
     const onClick = (event) => {
-      const maxAmount = Math.floor(Math.min(oil / oilPerBar, amount));
-      let making = Math.min(furnaceCapacity, maxAmount);
+      let making = getSmeltable();
       if (event.ctrlKey) {
-        making = Math.min(5, maxAmount);
+        making = Math.min(5, making);
       } else if (event.shiftKey) {
         making = Math.floor(making / 2);
       }
@@ -1165,15 +1546,34 @@ var __objRest = (source, exclude) => {
           amountAt: 0,
           amountSet: making
         });
+        if (amount === making) {
+          hideTooltip();
+        }
         setAmount(amount - making);
+        setOil(oil - making * oilPerBar);
+        setCharcoal(charcoal - making * charcoalPerBar);
+        setLava(lava - making * lavaPerBar);
         updateTextContentById("notification-furnace-label", `0/${making}`);
         showElementById("notification-furnace");
         sendMessage("SMELT", ore, making);
       }
     };
-    const unselectable = disabled || amount === 0 || oil < oilPerBar;
-    const formattedAmount = amount < 1e3 ? `${amount}` : amount < 1e6 ? `${(amount / 1e3).toFixed(5 - Math.floor(Math.log10(amount)))}k` : `${(amount / 1e6).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
-    return /* @__PURE__ */ React.createElement("div", {
+    const tooltipProps = {
+      ore,
+      oilPerBar,
+      charcoalPerBar,
+      lavaPerBar
+    };
+    const [oreProps, OreToolTips, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
+      amount: getSmeltable()
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
+      amount: Math.max(Math.floor(getSmeltable() / 2), 1)
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
+      amount: Math.min(getSmeltable(), 5)
+    }, tooltipProps)));
+    const unselectable = disabled || amount === 0 || oil < oilPerBar || charcoal < charcoalPerBar || lava < lavaPerBar;
+    const formattedAmount = formatNumber(amount);
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1181,7 +1581,7 @@ var __objRest = (source, exclude) => {
         width: "50px",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       role: "button",
       name: ore,
       size: 30,
@@ -1190,7 +1590,7 @@ var __objRest = (source, exclude) => {
         cursor: "default"
       } : void 0,
       onClick: unselectable ? void 0 : onClick
-    }), /* @__PURE__ */ React.createElement("span", null, formattedAmount));
+    }, oreProps)), /* @__PURE__ */ React__default["default"].createElement("span", null, formattedAmount), !unselectable && /* @__PURE__ */ React__default["default"].createElement(OreToolTips, null));
   };
   const BarDisplay = ({ bar }) => {
     const [amount, setAmount] = useNumberItemObserver(bar, "BarDisplay");
@@ -1217,14 +1617,15 @@ var __objRest = (source, exclude) => {
     "titanium_bar"
   ];
   const oreToBar = (ore) => ore === "copper" ? "bronze_bar" : `${ore}_bar`;
-  const id$5 = "CraftingOverview";
+  const id$6 = "CraftingOverview";
   const CraftingOverview = () => {
     const furnace = Furnace.getFurnace();
-    const [oreType, setOreType] = useItemObserver("furnace_ore_type", id$5);
-    const [oreAmountAt, setOreAmountAt] = useNumberItemObserver("furnace_ore_amount_at", id$5);
-    const [oreAmountSet, setOreAmountSet] = useNumberItemObserver("furnace_ore_amount_set", id$5);
-    const [oil] = useNumberItemObserver("oil", id$5);
-    const [charcoal, setCharcoal] = useNumberItemObserver("charcoal", id$5);
+    const [oreType, setOreType] = useItemObserver("furnace_ore_type", id$6);
+    const [oreAmountAt, setOreAmountAt] = useNumberItemObserver("furnace_ore_amount_at", id$6);
+    const [oreAmountSet, setOreAmountSet] = useNumberItemObserver("furnace_ore_amount_set", id$6);
+    const [oil, setOil] = useNumberItemObserver("oil", id$6);
+    const [charcoal, setCharcoal] = useNumberItemObserver("charcoal", id$6);
+    const [lava, setLava] = useNumberItemObserver("lava", id$6);
     const setSmelting = (smelting) => {
       setOreType(smelting.type);
       setOreAmountAt(smelting.amountAt);
@@ -1243,16 +1644,27 @@ var __objRest = (source, exclude) => {
       key: bar
     }))), /* @__PURE__ */ React.createElement("div", {
       style: {
-        display: "flex",
-        gap: "10px"
+        display: "flex"
       }
     }, /* @__PURE__ */ React.createElement("div", {
-      style: { visibility: "hidden" }
-    }, "padding"), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         gap: "10px",
-        flexDirection: "column"
+        flexDirection: "column",
+        width: "100px",
+        justifyContent: "flex-end",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: "oil",
+      size: 30
+    }), /* @__PURE__ */ React.createElement("span", null, formatNumber(oil))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column",
+        alignItems: "center",
+        width: "150px"
       }
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: furnace,
@@ -1270,12 +1682,36 @@ var __objRest = (source, exclude) => {
       style: {
         display: "flex",
         gap: "10px",
-        flexDirection: "column"
+        width: "100px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column",
+        width: "50px",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        height: "100%"
       }
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: "charcoal",
       size: 30
-    }), /* @__PURE__ */ React.createElement("span", null, charcoal))), /* @__PURE__ */ React.createElement("div", {
+    }), /* @__PURE__ */ React.createElement("span", null, charcoal)), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column",
+        width: "50px",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        height: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: "lava",
+      size: 30
+    }), /* @__PURE__ */ React.createElement("span", null, lava)))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         gap: "10px"
@@ -1285,21 +1721,35 @@ var __objRest = (source, exclude) => {
       disabled: oreType !== "none",
       setSmelting,
       oil,
+      setOil,
+      charcoal,
+      setCharcoal,
+      lava,
+      setLava,
       key: ore
     }))));
   };
   const MachineDisplay = ({
     machine,
     changeOilOut,
-    reqLevel,
+    level,
+    items,
     miningLevel
   }) => {
     useIPFDispatch();
     const oilUse = Ores.getOilCost(machine);
+    const [machineProps, MachineTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", minWidth: "200px", gap: "15px", alignItems: "center" }
+    }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(machine)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", justifyContent: "space-evenly", gap: "10px", minWidth: "200px" }
+    }, items.map((item) => /* @__PURE__ */ React__default["default"].createElement(IPimg, {
+      name: item,
+      size: 30
+    })))));
     const [amount, setAmount] = useNumberItemObserver(machine, "MachineDisplay");
     const [amountOn, setAmountOn] = useNumberItemObserver(`${machine}_on`, "MachineDisplay");
     const onIncrease = () => {
-      if (miningLevel >= reqLevel && amountOn < amount) {
+      if (miningLevel >= level && amountOn < amount) {
         sendMessage("MACHINERY", machine, "increase");
         setAmountOn(amountOn + 1);
         changeOilOut(oilUse);
@@ -1312,7 +1762,7 @@ var __objRest = (source, exclude) => {
         changeOilOut(-oilUse);
       }
     };
-    return amount >= 0 ? /* @__PURE__ */ React.createElement("div", {
+    return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1320,31 +1770,30 @@ var __objRest = (source, exclude) => {
         width: "min-content",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: machine,
-      size: 50,
-      style: {}
-    }), /* @__PURE__ */ React.createElement("div", {
+      size: 50
+    }, machineProps)), /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         gap: "5px",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, {
       name: "oil",
       size: 20
-    }), /* @__PURE__ */ React.createElement("span", null, `${oilUse * amountOn} (${oilUse})`)), /* @__PURE__ */ React.createElement("div", {
+    }), /* @__PURE__ */ React__default["default"].createElement("span", null, `${oilUse * amountOn} (${oilUse})`)), /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         gap: "5px",
         width: "max-content"
       }
-    }, /* @__PURE__ */ React.createElement("div", {
+    }, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement("span", {
+    }, /* @__PURE__ */ React__default["default"].createElement("span", {
       role: "button",
       style: {
         fontWeight: "500",
@@ -1353,39 +1802,43 @@ var __objRest = (source, exclude) => {
         visibility: amountOn > 0 ? "visible" : "hidden"
       },
       onClick: onDecrease
-    }, "<"), /* @__PURE__ */ React.createElement("span", {
+    }, "<"), /* @__PURE__ */ React__default["default"].createElement("span", {
       style: { margin: "0 10px" }
-    }, `${amountOn} / ${amount}`), /* @__PURE__ */ React.createElement("span", {
+    }, `${amountOn} / ${amount}`), /* @__PURE__ */ React__default["default"].createElement("span", {
       role: "button",
       style: {
         fontWeight: "500",
         fontSize: "24px",
         userSelect: "none",
-        visibility: miningLevel >= reqLevel && amountOn < amount ? "visible" : "hidden"
+        visibility: miningLevel >= level && amountOn < amount ? "visible" : "hidden"
       },
       onClick: onIncrease
-    }, ">")))) : null;
+    }, ">"))), /* @__PURE__ */ React__default["default"].createElement(MachineTooltip, null)) : null;
   };
   const MACHINES = {
     drill: {
-      level: 1
+      level: 1,
+      items: ["stone", "copper", "iron", "silver"]
     },
     crusher: {
-      level: 10
+      level: 10,
+      items: ["stone", "copper", "iron", "silver", "gold"]
     },
     giant_drill: {
-      level: 25
+      level: 25,
+      items: ["silver", "gold", "promethium"]
     },
     excavator: {
-      level: 60
+      level: 60,
+      items: ["gold", "promethium", "titanium"]
     }
   };
-  const id$4 = "MiningOverview";
+  const id$5 = "MiningOverview";
   const MiningOverview = () => {
     useIPFDispatch();
-    const [oilIn] = useNumberItemObserver("oil_in", id$4);
-    const [oilOut, setOilOut] = useNumberItemObserver("oil_out", id$4);
-    const [miningXp] = useNumberItemObserver("mining_xp", id$4);
+    const [oilIn] = useNumberItemObserver("oil_in", id$5);
+    const [oilOut, setOilOut] = React$1.useState(Items.getItem("oil_out"));
+    const [miningXp] = useNumberItemObserver("mining_xp", id$5);
     const miningLevel = get_level(miningXp);
     const changeOilOut = (change) => setOilOut(oilOut + change);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
@@ -1401,16 +1854,25 @@ var __objRest = (source, exclude) => {
         width: "100%",
         justifyContent: "space-evenly"
       }
-    }, Object.keys(MACHINES).map((machine) => /* @__PURE__ */ React.createElement(MachineDisplay, {
+    }, Object.keys(MACHINES).map((machine) => /* @__PURE__ */ React.createElement(MachineDisplay, __spreadProps(__spreadValues({
       machine,
-      changeOilOut,
-      reqLevel: MACHINES[machine].level,
+      changeOilOut
+    }, MACHINES[machine]), {
       miningLevel,
       key: machine
-    }))));
+    })))));
   };
-  const FarmingPatch = ({ seed, stage, timer, plotClick }) => {
-    return /* @__PURE__ */ React.createElement("div", {
+  const getDeathImage = (seed) => seed.includes("leaf") ? "farming_dead_leaf" : seed.includes("tree") ? "farming_dead_tree" : "farming_dead_mushroom";
+  const FarmingPatch = ({
+    seed,
+    stage,
+    timer,
+    shiny,
+    death,
+    plotClick
+  }) => {
+    const [patchProps, PatchTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", death ? "Dead " : "", Items.get_pretty_item_name(seed)));
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1418,70 +1880,125 @@ var __objRest = (source, exclude) => {
         backgroundImage: `url(${get_image("images/background_grass.png")}`,
         borderRadius: "20px",
         height: "120px",
+        width: "100px",
+        cursor: stage === 4 ? "pointer" : "default"
+      },
+      onClick: plotClick
+    }, !["none", "0"].includes(seed) ? /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { height: "100px", width: "100px" }
+    }, shiny ? /* @__PURE__ */ React__default["default"].createElement("img", {
+      src: get_image(`images/shiny.gif`),
+      alt: "shiny",
+      style: {
+        objectFit: "cover",
+        position: "absolute",
+        height: "100px",
         width: "100px"
       }
-    }, seed !== "none" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", {
-      style: { height: "100px", width: "100px" }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
-      role: "button",
-      name: `farming_${seed}_${stage}`,
-      onClick: plotClick,
+    }) : null, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
+      name: death ? getDeathImage(seed) : `farming_${seed}_${stage}`,
       size: 100,
       style: { zIndex: 1, position: "absolute", objectFit: "unset" }
-    }), /* @__PURE__ */ React.createElement(IPimg, {
+    }, patchProps)), /* @__PURE__ */ React__default["default"].createElement(IPimg, {
       name: `farming_none`,
       size: 100,
       style: { position: "absolute", objectFit: "unset" }
-    })), /* @__PURE__ */ React.createElement("span", {
+    })), /* @__PURE__ */ React__default["default"].createElement("span", {
       style: {
         color: "white"
       }
-    }, stage === 4 ? "READY" : timer > 0 ? format_time(timer) : "")) : null);
+    }, stage === 4 ? "READY" : timer > 0 ? format_time(timer) : ""), /* @__PURE__ */ React__default["default"].createElement(PatchTooltip, null)) : null);
   };
-  const id$3 = "SeedDisplay";
-  const SeedDisplay = ({ seed, seedClick, nextPlot }) => {
-    const [amount, setAmount] = useNumberItemObserver(seed, id$3);
+  const id$4 = "SeedDisplay";
+  const SeedDisplay = ({
+    seed,
+    seedClick,
+    nextPlot,
+    farmingLevel,
+    level,
+    stopsDying,
+    bonemeal,
+    bonemealCost,
+    setBonemeal,
+    time
+  }) => {
+    const [amount, setAmount] = useNumberItemObserver(seed, id$4);
+    const canPlant = nextPlot > 0 && amount > 0 && bonemeal >= bonemealCost && farmingLevel >= level;
     const onClick = () => {
-      if (nextPlot > 0 && amount > 0) {
+      if (canPlant) {
         seedClick();
+        if (amount === 1) {
+          hideTooltip();
+        }
         setAmount(amount - 1);
+        setBonemeal(bonemeal - bonemealCost);
       }
     };
-    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
+    const [seedProps, SeedTooltip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "300px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement("span", null, canPlant ? "Plant" : "Can't Plant", " ", Items.get_pretty_item_name(seed)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Time: ", formatMinutes(time)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Level:", " ", /* @__PURE__ */ React__default["default"].createElement("span", {
+      style: { color: farmingLevel < level ? "red" : "unset" }
+    }, level)), stopsDying > 0 && /* @__PURE__ */ React__default["default"].createElement("span", null, "Stops Dying:", " ", /* @__PURE__ */ React__default["default"].createElement("span", {
+      style: { color: farmingLevel < stopsDying ? "yellow" : "unset" }
+    }, stopsDying)), bonemealCost > 0 && /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      size: 30,
+      name: "bonemeal",
+      label: bonemealCost,
+      style: { color: bonemeal < bonemealCost ? "red" : "unset" }
+    })));
+    return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
         gap: "5px",
         width: "50px",
         alignItems: "center",
-        opacity: nextPlot > 0 ? 1 : 0.5,
-        cursor: nextPlot > 0 ? "pointer" : "default"
-      },
-      role: "button"
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+        opacity: canPlant ? 1 : 0.5
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: seed,
       size: 30,
       onClick,
-      title: Items.get_pretty_item_name(seed)
-    }), /* @__PURE__ */ React.createElement("span", null, amount)) : null;
+      role: "button",
+      style: {
+        cursor: canPlant ? "pointer" : "default"
+      }
+    }, seedProps)), /* @__PURE__ */ React__default["default"].createElement("span", null, amount)), nextPlot > 0 && /* @__PURE__ */ React__default["default"].createElement(SeedTooltip, null)) : null;
   };
+  const stageOverride = (value) => value === 4;
+  const timerOverride = (value) => value === 1;
   const useFarmPatchesObserver = (id2) => {
     const hookId = `useFarmPatchesObserver-${id2}`;
-    const [stage1, setStage1] = useNumberItemObserver(`farm_stage_1`, hookId);
-    const [stage2, setStage2] = useNumberItemObserver(`farm_stage_2`, hookId);
-    const [stage3, setStage3] = useNumberItemObserver(`farm_stage_3`, hookId);
-    const [stage4, setStage4] = useNumberItemObserver(`farm_stage_4`, hookId);
-    const [stage5, setStage5] = useNumberItemObserver(`farm_stage_5`, hookId);
+    const [stage1, setStage1] = useNumberItemObserver(`farm_stage_1`, hookId, stageOverride);
+    const [stage2, setStage2] = useNumberItemObserver(`farm_stage_2`, hookId, stageOverride);
+    const [stage3, setStage3] = useNumberItemObserver(`farm_stage_3`, hookId, stageOverride);
+    const [stage4, setStage4] = useNumberItemObserver(`farm_stage_4`, hookId, stageOverride);
+    const [stage5, setStage5] = useNumberItemObserver(`farm_stage_5`, hookId, stageOverride);
     const [seed1, setSeed1] = useItemObserver(`farm_1`, hookId);
     const [seed2, setSeed2] = useItemObserver(`farm_2`, hookId);
     const [seed3, setSeed3] = useItemObserver(`farm_3`, hookId);
     const [seed4, setSeed4] = useItemObserver(`farm_4`, hookId);
     const [seed5, setSeed5] = useItemObserver(`farm_5`, hookId);
-    const [timer1, setTimer1] = useNumberItemObserver(`farm_timer_1`, hookId);
-    const [timer2, setTimer2] = useNumberItemObserver(`farm_timer_2`, hookId);
-    const [timer3, setTimer3] = useNumberItemObserver(`farm_timer_3`, hookId);
-    const [timer4, setTimer4] = useNumberItemObserver(`farm_timer_4`, hookId);
-    const [timer5, setTimer5] = useNumberItemObserver(`farm_timer_5`, hookId);
+    const [timer1, setTimer1] = useNumberItemObserver(`farm_timer_1`, hookId, timerOverride);
+    const [timer2, setTimer2] = useNumberItemObserver(`farm_timer_2`, hookId, timerOverride);
+    const [timer3, setTimer3] = useNumberItemObserver(`farm_timer_3`, hookId, timerOverride);
+    const [timer4, setTimer4] = useNumberItemObserver(`farm_timer_4`, hookId, timerOverride);
+    const [timer5, setTimer5] = useNumberItemObserver(`farm_timer_5`, hookId, timerOverride);
+    const [shiny1, setShiny1] = useNumberItemObserver(`farm_shiny_1`, hookId);
+    const [shiny2, setShiny2] = useNumberItemObserver(`farm_shiny_2`, hookId);
+    const [shiny3, setShiny3] = useNumberItemObserver(`farm_shiny_3`, hookId);
+    const [shiny4, setShiny4] = useNumberItemObserver(`farm_shiny_4`, hookId);
+    const [shiny5, setShiny5] = useNumberItemObserver(`farm_shiny_5`, hookId);
+    const [death1, setDeath1] = useNumberItemObserver(`farm_death_1`, hookId);
+    const [death2, setDeath2] = useNumberItemObserver(`farm_death_2`, hookId);
+    const [death3, setDeath3] = useNumberItemObserver(`farm_death_3`, hookId);
+    const [death4, setDeath4] = useNumberItemObserver(`farm_death_4`, hookId);
+    const [death5, setDeath5] = useNumberItemObserver(`farm_death_5`, hookId);
     return [
       {
         stage: stage1,
@@ -1489,7 +2006,11 @@ var __objRest = (source, exclude) => {
         seed: seed1,
         setSeed: setSeed1,
         timer: timer1,
-        setTimer: setTimer1
+        setTimer: setTimer1,
+        shiny: shiny1,
+        setShiny: setShiny1,
+        death: death1,
+        setDeath: setDeath1
       },
       {
         stage: stage2,
@@ -1497,7 +2018,11 @@ var __objRest = (source, exclude) => {
         seed: seed2,
         setSeed: setSeed2,
         timer: timer2,
-        setTimer: setTimer2
+        setTimer: setTimer2,
+        shiny: shiny2,
+        setShiny: setShiny2,
+        death: death2,
+        setDeath: setDeath2
       },
       {
         stage: stage3,
@@ -1505,7 +2030,11 @@ var __objRest = (source, exclude) => {
         seed: seed3,
         setSeed: setSeed3,
         timer: timer3,
-        setTimer: setTimer3
+        setTimer: setTimer3,
+        shiny: shiny3,
+        setShiny: setShiny3,
+        death: death3,
+        setDeath: setDeath3
       },
       {
         stage: stage4,
@@ -1513,7 +2042,11 @@ var __objRest = (source, exclude) => {
         seed: seed4,
         setSeed: setSeed4,
         timer: timer4,
-        setTimer: setTimer4
+        setTimer: setTimer4,
+        shiny: shiny4,
+        setShiny: setShiny4,
+        death: death4,
+        setDeath: setDeath4
       },
       {
         stage: stage5,
@@ -1521,7 +2054,11 @@ var __objRest = (source, exclude) => {
         seed: seed5,
         setSeed: setSeed5,
         timer: timer5,
-        setTimer: setTimer5
+        setTimer: setTimer5,
+        shiny: shiny5,
+        setShiny: setShiny5,
+        death: death5,
+        setDeath: setDeath5
       }
     ];
   };
@@ -1530,12 +2067,6 @@ var __objRest = (source, exclude) => {
       level: 1,
       stopsDying: 15,
       time: 15,
-      bonemealCost: 0
-    },
-    stardust_seeds: {
-      level: 8,
-      stopsDying: 0,
-      time: 20,
       bonemealCost: 0
     },
     green_leaf_seeds: {
@@ -1566,6 +2097,18 @@ var __objRest = (source, exclude) => {
       level: 1,
       stopsDying: 0,
       time: 5,
+      bonemealCost: 0
+    },
+    eggplant_seeds: {
+      level: 1,
+      stopsDying: 0,
+      time: 5,
+      bonemealCost: 0
+    },
+    stardust_seeds: {
+      level: 8,
+      stopsDying: 0,
+      time: 20,
       bonemealCost: 0
     },
     tree_seeds: {
@@ -1603,27 +2146,129 @@ var __objRest = (source, exclude) => {
       stopsDying: 85,
       time: 17 * 60,
       bonemealCost: 180
+    },
+    redwood_tree_seeds: {
+      level: 80,
+      stopsDying: 92,
+      time: 22 * 60,
+      bonemealCost: 300
+    },
+    apple_tree_seeds: {
+      level: 50,
+      stopsDying: 55,
+      time: 8 * 60,
+      bonemealCost: 50
+    },
+    banana_tree_seeds: {
+      level: 57,
+      stopsDying: 62,
+      time: 11 * 60,
+      bonemealCost: 70
+    },
+    orange_tree_seeds: {
+      level: 66,
+      stopsDying: 70,
+      time: 15 * 60,
+      bonemealCost: 120
+    },
+    palm_tree_seeds: {
+      level: 82,
+      stopsDying: 90,
+      time: 19 * 60,
+      bonemealCost: 200
     }
+  };
+  const BONES = {
+    bones: {
+      bonemeal: 1
+    },
+    big_bones: {
+      bonemeal: 2
+    },
+    ice_bones: {
+      bonemeal: 3
+    },
+    ashes: {
+      bonemeal: 2
+    }
+  };
+  const BoneTooltip = ({ bone, amount, bonemealValue }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", minWidth: "250px", alignItems: "center" }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Add ", amount, " ", Items.get_pretty_item_name(bone)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", justifyContent: "space-evenly" }
+    }, /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: "bonemeal",
+      size: 30,
+      label: bonemealValue * amount
+    })));
+  };
+  const id$3 = "BoneDisplay";
+  const BoneDisplay = ({ bone, bonemealValue, bonemeal, setBonemeal }) => {
+    const [amount, setAmount] = useNumberItemObserver(bone, id$3);
+    const onClick = (event) => {
+      let adding = amount;
+      if (event.ctrlKey) {
+        adding = Math.min(5, adding);
+      } else if (event.shiftKey) {
+        adding = Math.floor(adding / 2);
+      }
+      if (adding > 0) {
+        if (adding === amount) {
+          hideTooltip();
+        }
+        setAmount(amount - adding);
+        setBonemeal(bonemeal + adding * bonemealValue);
+        sendMessage("ADD_BONEMEAL", bone, adding);
+      }
+    };
+    const tooltipProps = {
+      bone,
+      bonemealValue
+    };
+    const [boneProps, BoneTooltips, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
+      amount
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
+      amount: Math.max(Math.floor(amount / 2), 1)
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
+      amount: Math.min(amount, 5)
+    }, tooltipProps)));
+    return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "5px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
+      name: bone,
+      size: 30,
+      onClick,
+      title: Items.get_pretty_item_name(bone),
+      role: "button"
+    }, boneProps)), /* @__PURE__ */ React__default["default"].createElement("span", null, amount), /* @__PURE__ */ React__default["default"].createElement(BoneTooltips, null)) : null;
   };
   const id$2 = "FarmingOverview";
   const FarmingOverview = () => {
     useIPFDispatch();
     const seeds = Object.keys(SEEDS);
+    const bones = keysOf(BONES);
+    const [bonemeal, setBonemeal] = useNumberItemObserver("bonemeal", id$2);
+    const [farmingXp] = useNumberItemObserver("farming_xp", id$2);
     const patches = 3 + Math.sign(Number(Items.getItem("donor_farm_patches_timestamp"))) * 2;
     const patchData = useFarmPatchesObserver(id$2);
     const nextPlot = patchData.map((patch) => patch.stage).findIndex((value, index) => value === 0 && index < patches) + 1;
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const seedClick = (seed) => {
       sendMessage("PLANT", seed, nextPlot);
-      console.log("planting in", nextPlot);
       patchData[nextPlot - 1].setSeed(seed);
       patchData[nextPlot - 1].setStage(1);
       patchData[nextPlot - 1].setTimer(SEEDS[seed].time * 60);
     };
     const plotClick = (index) => {
-      const { stage, setStage, setSeed } = patchData[index];
-      if (stage === 4) {
-        console.log(finishedPatches);
+      const { stage, setStage, setSeed, death } = patchData[index];
+      if (stage === 4 || death === 1) {
         if (finishedPatches === 1) {
           hideElementById("notification-farming");
         }
@@ -1637,17 +2282,45 @@ var __objRest = (source, exclude) => {
       width: 550,
       justifyContent: "space-between"
     }, /* @__PURE__ */ React.createElement("div", {
+      style: { display: "flex" }
+    }, /* @__PURE__ */ React.createElement(LabeledIPimg, {
+      name: "bonemeal_bin",
+      label: bonemeal,
+      size: 50,
+      style: { justifyContent: "center" }
+    }), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
-        justifyContent: "center",
-        flexWrap: "wrap"
+        justifyContent: "flex-start",
+        flexWrap: "wrap",
+        height: "120px",
+        width: "100px"
       }
-    }, seeds.map((seed) => /* @__PURE__ */ React.createElement(SeedDisplay, {
+    }, bones.map((bone) => /* @__PURE__ */ React.createElement(BoneDisplay, {
+      bone,
+      bonemealValue: BONES[bone].bonemeal,
+      bonemeal,
+      setBonemeal,
+      key: bone
+    }))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "flex-start",
+        flexWrap: "wrap",
+        overflowY: "auto",
+        height: "120px",
+        width: "400px"
+      }
+    }, seeds.map((seed) => /* @__PURE__ */ React.createElement(SeedDisplay, __spreadProps(__spreadValues({
       seed,
       seedClick: () => seedClick(seed),
       nextPlot,
+      bonemeal
+    }, SEEDS[seed]), {
+      setBonemeal,
+      farmingLevel: get_level(farmingXp),
       key: seed
-    }))), /* @__PURE__ */ React.createElement("div", {
+    }))))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         alignItems: "center",
@@ -1655,13 +2328,15 @@ var __objRest = (source, exclude) => {
         justifyContent: "center",
         gap: "10px"
       }
-    }, Array(patches).fill(null).map((v, i) => /* @__PURE__ */ React.createElement(FarmingPatch, {
-      seed: patchData[i].seed,
-      stage: patchData[i].stage,
-      timer: patchData[i].timer,
+    }, Array(patches).fill(null).map((v, i) => /* @__PURE__ */ React.createElement(FarmingPatch, __spreadProps(__spreadValues({}, patchData[i]), {
       plotClick: () => plotClick(i),
       key: i + 1
-    }))));
+    })))));
+  };
+  const GatheringBagTooltip = ({ area, amount }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", alignItems: "center", minWidth: "350px" }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Open ", amount, " ", Items.get_pretty_item_name(area), " Bags"));
   };
   const GatheringBagDisplay = ({ area }) => {
     const itemName = `gathering_loot_bag_${area}`;
@@ -1674,13 +2349,27 @@ var __objRest = (source, exclude) => {
         making = Math.floor(making / 2);
       }
       if (making > 0) {
+        if (making === amount) {
+          hideTooltip();
+        }
         setAmount(amount - making);
         sendMessage("OPEN_GATHERING_LOOT", area, making);
       }
     };
     const unselectable = amount <= 0;
     const formattedAmount = amount < 1e3 ? `${amount}` : amount < 1e6 ? `${(amount / 1e3).toFixed(5 - Math.floor(Math.log10(amount)))}k` : `${(amount / 1e6).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
-    return /* @__PURE__ */ React.createElement("div", {
+    const tooltipProps = {
+      area,
+      maxAmount: amount
+    };
+    const [bagProps, BagToolTip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
+      amount
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
+      amount: Math.max(Math.floor(amount / 2), 1)
+    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
+      amount: Math.min(5, amount)
+    }, tooltipProps)));
+    return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1688,7 +2377,7 @@ var __objRest = (source, exclude) => {
         width: "50px",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       role: "button",
       name: itemName,
       size: 30,
@@ -1696,104 +2385,124 @@ var __objRest = (source, exclude) => {
         opacity: 0.5,
         cursor: "default"
       } : void 0,
-      onClick: unselectable ? void 0 : onClick,
-      title: Items.get_pretty_item_name(itemName)
-    }), /* @__PURE__ */ React.createElement("span", null, formattedAmount));
+      onClick: unselectable ? void 0 : onClick
+    }, bagProps)), /* @__PURE__ */ React__default["default"].createElement("span", null, formattedAmount), /* @__PURE__ */ React__default["default"].createElement(BagToolTip, null)) : null;
   };
-  const AREAS = {
-    mines: {
-      image: "mine"
-    },
-    fields: {
-      image: "field"
-    },
-    forest: {
-      image: "forest"
-    },
-    fishing_pond: {
-      image: "fishing_pond"
-    },
-    kitchen: {
-      image: "kitchen"
-    },
-    gem_mine: {
-      image: "gem_mine"
-    }
-  };
-  const id$1 = "GatheringOverview";
-  const GatheringOverview = () => {
-    const areas = Object.keys(AREAS);
-    const [currentGatheringArea, setCurrentGatheringArea] = useItemObserver("current_gathering_area", id$1);
-    const [updateTimeout, setUpdateTimeout] = React$1.useState(setTimeout(() => {
-    }));
-    const currentIndex = Object.keys(AREAS).indexOf(currentGatheringArea);
-    const areaAmount = Object.keys(AREAS).length;
-    const queueChange = (change) => {
-      const nextIndex = currentIndex + change;
-      if (nextIndex >= 0 && nextIndex <= areaAmount) {
-        const nextArea = Object.keys(AREAS)[nextIndex];
-        setCurrentGatheringArea(nextArea);
-        clearTimeout(updateTimeout);
-        setUpdateTimeout(setTimeout(() => {
-          if (nextArea !== currentGatheringArea) {
-            sendMessage("GATHERING", nextArea);
-          }
-        }, 1e3));
-      }
-    };
-    return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
-      width: 300
-    }, /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        alignItems: "center"
-      }
-    }, /* @__PURE__ */ React.createElement("div", {
-      style: {
-        visibility: currentIndex > 0 ? "visible" : "hidden",
-        height: "100px",
-        width: "40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      },
-      role: "button",
-      onClick: () => queueChange(-1)
-    }, /* @__PURE__ */ React.createElement("span", {
-      style: {
-        fontWeight: "500",
-        fontSize: "24px",
-        userSelect: "none"
-      }
-    }, "<")), /* @__PURE__ */ React.createElement(IPimg, {
-      name: `gathering_${AREAS[currentGatheringArea].image}`,
-      size: 100
-    }), /* @__PURE__ */ React.createElement("div", {
-      style: {
-        visibility: currentIndex < areaAmount - 1 ? "visible" : "hidden",
-        height: "100px",
-        width: "40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      },
-      role: "button",
-      onClick: () => queueChange(1)
-    }, /* @__PURE__ */ React.createElement("span", {
-      style: {
-        fontWeight: "500",
-        fontSize: "24px",
-        userSelect: "none"
-      }
-    }, ">"))), /* @__PURE__ */ React.createElement("div", {
+  const GatheringAreaDisplay = ({
+    image,
+    name,
+    items,
+    getUnlocked,
+    isSelectedArea,
+    selectArea
+  }) => {
+    const [areaProps, AreaTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        userSelect: "none"
+        minWidth: "300px",
+        fontSize: "16px"
       }
-    }, /* @__PURE__ */ React.createElement("span", null, Items.get_pretty_item_name(currentGatheringArea))), /* @__PURE__ */ React.createElement("div", {
+    }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(name)), /* @__PURE__ */ React__default["default"].createElement("span", {
+      style: { fontSize: "12px" }
+    }, "Items: ", items)));
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        width: "93px",
+        height: "90px",
+        justifyContent: "space-between",
+        visibility: getUnlocked() ? "visible" : "hidden"
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
+      name: `gathering_${image}`,
+      size: 50,
+      style: {
+        boxSizing: "content-box",
+        border: `3px solid ${isSelectedArea ? "green" : "transparent"}`,
+        padding: "2px",
+        borderRadius: "5px"
+      },
+      role: "button",
+      onClick: selectArea
+    }, areaProps)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        height: "25px",
+        display: "flex",
+        alignItems: "center"
+      }
+    }, name), /* @__PURE__ */ React__default["default"].createElement(AreaTooltip, null));
+  };
+  const getUnlockedFactory = (...skills) => () => !!Number(Items.getItem("gathering_unlocked")) && skills.map((skill) => !!Number(Items.getItem(`${skill}_unlocked`))).reduce((acc, cur) => acc && cur, true);
+  const AREAS = {
+    mines: {
+      image: "mine",
+      name: "Desert mines",
+      items: "Stone, Rocket Fuel",
+      getUnlocked: getUnlockedFactory()
+    },
+    fields: {
+      image: "field",
+      name: "Forever fields",
+      items: "Bones, Seeds",
+      getUnlocked: getUnlockedFactory("farming")
+    },
+    forest: {
+      image: "forest",
+      name: "Friendly forest",
+      items: "Big Bones, Leaves, Wood",
+      getUnlocked: getUnlockedFactory("woodcutting")
+    },
+    fishing_pond: {
+      image: "fishing_pond",
+      name: "Quiet pond",
+      items: "Seaweed, Bait",
+      getUnlocked: getUnlockedFactory("fishing")
+    },
+    kitchen: {
+      image: "kitchen",
+      name: "Dirty kitchen",
+      items: "Maggots, Eggs, Chocolate, Flour",
+      getUnlocked: getUnlockedFactory("cooking")
+    },
+    gem_mine: {
+      image: "gem_mine",
+      name: "Gem mine",
+      items: "Stone, Gem Fragments",
+      getUnlocked: getUnlockedFactory("crafting", "farming", "brewing", "woodcutting", "cooking", "fishing", "melee")
+    }
+  };
+  const id$1 = "GatheringOverview";
+  const GatheringOverview = () => {
+    const areas = keysOf(AREAS);
+    const [currentGatheringArea, setCurrentGatheringArea] = useItemObserver("current_gathering_area", id$1);
+    const selectArea = (area) => {
+      setCurrentGatheringArea(area);
+      sendMessage("GATHERING", area);
+    };
+    return /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 250,
+      width: 300,
+      justifyContent: "space-between"
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "10px",
+        justifyContent: "space-between",
+        fontSize: "12px"
+      }
+    }, areas.map((area) => /* @__PURE__ */ React.createElement(GatheringAreaDisplay, __spreadProps(__spreadValues({
+      selectArea: () => selectArea(area),
+      area
+    }, AREAS[area]), {
+      isSelectedArea: area === currentGatheringArea
+    })))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         width: "100%",
@@ -1809,7 +2518,7 @@ var __objRest = (source, exclude) => {
     const dispatch = useIPFDispatch();
     const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
     useSetItemsObserver();
-    useLocalStorage("overview-settings", { showActivityLog: false }, id);
+    const [settings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id);
     const oldSwitchPanels = React$1.useRef(switch_panels);
     React$1.useEffect(() => {
       switch_panels = (id2) => {
@@ -1822,7 +2531,6 @@ var __objRest = (source, exclude) => {
       dispatch(subscribeToKeyboardEvent({
         key: "Control",
         onKeyDown: () => {
-          console.log("ctrlkeydown");
           dispatch(ctrlKeyDown());
         },
         onKeyUp: () => dispatch(ctrlKeyUp()),
@@ -1846,7 +2554,7 @@ var __objRest = (source, exclude) => {
         display: "flex",
         flexDirection: "column",
         gap: "15px",
-        width: "75%"
+        width: settings.showInOverview ? "75%" : "100%"
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
@@ -1859,8 +2567,7 @@ var __objRest = (source, exclude) => {
         display: "flex",
         flexDirection: "column",
         gap: "15px",
-        alignItems: "center",
-        width: "50%"
+        alignItems: "center"
       }
     }, /* @__PURE__ */ React.createElement(WoodcuttingOverview, null), /* @__PURE__ */ React.createElement(FarmingOverview, null)), /* @__PURE__ */ React.createElement("div", {
       style: {
@@ -1878,20 +2585,15 @@ var __objRest = (source, exclude) => {
         alignItems: "center",
         width: "50%%"
       }
-    }, /* @__PURE__ */ React.createElement(CraftingOverview, null), /* @__PURE__ */ React.createElement(MiningOverview, null)))), /* @__PURE__ */ React.createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "15px",
-        alignItems: "center",
-        width: "25%",
-        fontSize: "8px",
-        overflowY: "auto",
-        overflowX: "hidden",
-        height: "calc(100vh - 200px)",
-        border: "1px solid grey",
-        borderRadius: "10px"
-      }
+    }, /* @__PURE__ */ React.createElement(CraftingOverview, null), /* @__PURE__ */ React.createElement(MiningOverview, null)))), settings.showInOverview && /* @__PURE__ */ React.createElement(OverviewBox, {
+      height: 800,
+      width: 400,
+      gap: "15px",
+      fontSize: "8px",
+      overflowY: "auto",
+      overflowX: "hidden",
+      justifyContent: "flex-start",
+      border: "unset"
     }, list.slice(0, 25).map((item) => /* @__PURE__ */ React.createElement(ActivityLogEntry, {
       item
     })))) : null;
@@ -1901,11 +2603,13 @@ var __objRest = (source, exclude) => {
     appendReact(/* @__PURE__ */ React.createElement(ActivityLog, null), "content");
     appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "menu-bar-keyitems");
     appendReact(/* @__PURE__ */ React.createElement(OverviewPanel, null), "panels", "panel-keyitems");
+    window.onblur = () => {
+      store.dispatch(resetModifierKeys());
+    };
     document.body.onkeydown = (ev) => {
       if (!ev.repeat) {
-        console.log(ev, store.getState().keyboard.subscribers);
         store.getState().keyboard.subscribers.forEach((sub) => {
-          if (ev.key === sub.key) {
+          if (ev.key === sub.key && sub.onKeyDown) {
             sub.onKeyDown(ev);
           }
         });
@@ -1914,7 +2618,7 @@ var __objRest = (source, exclude) => {
     document.body.onkeyup = (ev) => {
       if (!ev.repeat) {
         store.getState().keyboard.subscribers.forEach((sub) => {
-          if (ev.key === sub.key) {
+          if (ev.key === sub.key && sub.onKeyUp) {
             sub.onKeyUp(ev);
           }
         });

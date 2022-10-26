@@ -8,8 +8,8 @@ interface KeyboardState {
 }
 
 interface KeyboardSubscriber {
-  onKeyDown: KeyboardEventHandler<Body>;
-  onKeyUp: KeyboardEventHandler<Body>;
+  onKeyDown?: KeyboardEventHandler<Body>;
+  onKeyUp?: KeyboardEventHandler<Body>;
   key: string;
   id: string;
 }

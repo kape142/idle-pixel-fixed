@@ -3,16 +3,18 @@ import {
   useNumberItemObserver,
 } from "../setItems/useSetItemsObserver";
 
-interface treePatch {
+interface TreePatch {
   stage: number;
   setStage: (newValue: number) => void;
   type: string;
   setType: (newValue: string) => void;
   timer: number;
   setTimer: (newValue: number) => void;
+  shiny: number;
+  setShiny: (newValue: number) => void;
 }
 
-export const useTreePatchesObserver = (id: string): treePatch[] => {
+export const useTreePatchesObserver = (id: string): TreePatch[] => {
   const hookId = `useTreePatchesObserver-${id}`;
   const [stage1, setStage1] = useNumberItemObserver(`tree_stage_1`, hookId);
   const [stage2, setStage2] = useNumberItemObserver(`tree_stage_2`, hookId);
@@ -32,6 +34,12 @@ export const useTreePatchesObserver = (id: string): treePatch[] => {
   const [timer4, setTimer4] = useNumberItemObserver(`tree_timer_4`, hookId);
   const [timer5, setTimer5] = useNumberItemObserver(`tree_timer_5`, hookId);
 
+  const [shiny1, setShiny1] = useNumberItemObserver(`tree_shiny_1`, hookId);
+  const [shiny2, setShiny2] = useNumberItemObserver(`tree_shiny_2`, hookId);
+  const [shiny3, setShiny3] = useNumberItemObserver(`tree_shiny_3`, hookId);
+  const [shiny4, setShiny4] = useNumberItemObserver(`tree_shiny_4`, hookId);
+  const [shiny5, setShiny5] = useNumberItemObserver(`tree_shiny_5`, hookId);
+
   return [
     {
       stage: stage1,
@@ -40,6 +48,8 @@ export const useTreePatchesObserver = (id: string): treePatch[] => {
       setType: setType1,
       timer: timer1,
       setTimer: setTimer1,
+      shiny: shiny1,
+      setShiny: setShiny1,
     },
     {
       stage: stage2,
@@ -48,6 +58,8 @@ export const useTreePatchesObserver = (id: string): treePatch[] => {
       setType: setType2,
       timer: timer2,
       setTimer: setTimer2,
+      shiny: shiny2,
+      setShiny: setShiny2,
     },
     {
       stage: stage3,
@@ -56,6 +68,8 @@ export const useTreePatchesObserver = (id: string): treePatch[] => {
       setType: setType3,
       timer: timer3,
       setTimer: setTimer3,
+      shiny: shiny3,
+      setShiny: setShiny3,
     },
     {
       stage: stage4,
@@ -64,6 +78,8 @@ export const useTreePatchesObserver = (id: string): treePatch[] => {
       setType: setType4,
       timer: timer4,
       setTimer: setTimer4,
+      shiny: shiny4,
+      setShiny: setShiny4,
     },
     {
       stage: stage5,
@@ -72,6 +88,8 @@ export const useTreePatchesObserver = (id: string): treePatch[] => {
       setType: setType5,
       timer: timer5,
       setTimer: setTimer5,
+      shiny: shiny5,
+      setShiny: setShiny5,
     },
   ];
 };

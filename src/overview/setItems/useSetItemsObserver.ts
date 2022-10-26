@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useIPFDispatch, useIPFSelector } from "../../redux/hooks";
 import {
   addSetItemsObserver,
@@ -18,9 +18,12 @@ interface Data {
 
 export const useNumberItemObserver = (
   item: string,
-  id: string
+  id: string,
+  specialCase: (value: number) => boolean = (_) => false
 ): [number, (newValue: number) => void] => {
-  const [value, setValue] = useItemObserver(item, id);
+  const [value, setValue] = useItemObserver(item, id, (value) =>
+    specialCase(Number(value))
+  );
 
   return [
     Number(value),
@@ -33,7 +36,8 @@ export const useNumberItemObserver = (
 
 export const useItemObserver = (
   item: string,
-  id: string
+  id: string,
+  specialCase: (value: string) => boolean = (_) => false
 ): [string, (newValue: string) => void] => {
   const [value, setValue] = useState(Items.getItem(item).toString());
   const trueValue = useRef(Items.getItem(item).toString());
@@ -45,7 +49,10 @@ export const useItemObserver = (
 
   const setTrueValue = useCallback(
     (newValue: string) => {
-      if (value === trueValue.current) {
+      const override = specialCase(newValue);
+      if (override) {
+        setValue(newValue);
+      } else if (value === trueValue.current) {
         setValue(newValue);
       } else {
         if (!forceTrueValueTimeout) {

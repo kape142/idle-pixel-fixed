@@ -1,5 +1,5 @@
 import IPimg from "../../util/IPimg";
-import { MouseEvent } from "react";
+import React, { MouseEvent } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { Smelting } from "./CraftingOverview";
@@ -7,24 +7,57 @@ import {
   showElementById,
   updateTextContentById,
 } from "../../util/domOperations";
+import { formatNumber } from "../../util/numberUtils";
+import { useTooltip } from "../../util/tooltip/useTooltip";
+import OreTooltip from "./OreTooltip";
 
 interface Props {
   ore: string;
   disabled: boolean;
   setSmelting: (smelting: Smelting) => void;
   oil: number;
+  setOil: (oil: number) => void;
+  charcoal: number;
+  setCharcoal: (charcoal: number) => void;
+  lava: number;
+  setLava: (lava: number) => void;
 }
 
-const OreDisplay = ({ ore, disabled, setSmelting, oil }: Props) => {
+const OreDisplay = ({
+  ore,
+  disabled,
+  setSmelting,
+  oil,
+  setOil,
+  charcoal,
+  setCharcoal,
+  lava,
+  setLava,
+}: Props) => {
   const furnaceCapacity = Number(Furnace.getFurnaceCapacity());
   const [amount, setAmount] = useNumberItemObserver(ore, `OreDisplay-${ore}`);
   const oilPerBar = Crafting.getOilPerBar(ore);
+  const charcoalPerBar = Crafting.getCharcoalPerBar(ore);
+  const lavaPerBar = Crafting.getLavaPerBar(ore);
+
+  const getSmeltable = () => {
+    const maxAmountOil = Math.floor(
+      Math.min(oil / oilPerBar || Infinity, amount)
+    );
+    const maxAmountCharcoal = Math.floor(
+      Math.min(charcoal / charcoalPerBar || Infinity, amount)
+    );
+    const maxAmountLava = Math.floor(
+      Math.min(lava / lavaPerBar || Infinity, amount)
+    );
+    const maxAmount = Math.min(maxAmountOil, maxAmountCharcoal, maxAmountLava);
+    return Math.min(furnaceCapacity, maxAmount);
+  };
 
   const onClick = (event: MouseEvent) => {
-    const maxAmount = Math.floor(Math.min(oil / oilPerBar, amount));
-    let making = Math.min(furnaceCapacity, maxAmount);
+    let making = getSmeltable();
     if (event.ctrlKey) {
-      making = Math.min(5, maxAmount);
+      making = Math.min(5, making);
     } else if (event.shiftKey) {
       making = Math.floor(making / 2);
     }
@@ -34,21 +67,43 @@ const OreDisplay = ({ ore, disabled, setSmelting, oil }: Props) => {
         amountAt: 0,
         amountSet: making,
       });
+      if(amount === making){
+        hideTooltip();
+      }
       setAmount(amount - making);
+      setOil(oil - making * oilPerBar);
+      setCharcoal(charcoal - making * charcoalPerBar);
+      setLava(lava - making * lavaPerBar);
       updateTextContentById("notification-furnace-label", `0/${making}`);
       showElementById("notification-furnace");
       sendMessage("SMELT", ore, making);
     }
   };
 
-  const unselectable = disabled || amount === 0 || oil < oilPerBar;
+  const tooltipProps = {
+    ore,
+    oilPerBar,
+    charcoalPerBar,
+    lavaPerBar,
+  };
 
-  const formattedAmount =
-    amount < 1_000
-      ? `${amount}`
-      : amount < 1_000_000
-      ? `${(amount / 1_000).toFixed(5 - Math.floor(Math.log10(amount)))}k`
-      : `${(amount / 1_000_000).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
+  const [oreProps, OreToolTips, hideTooltip] = useTooltip(
+    <OreTooltip amount={getSmeltable()} {...tooltipProps} />,
+    <OreTooltip
+      amount={Math.max(Math.floor(getSmeltable() / 2), 1)}
+      {...tooltipProps}
+    />,
+    <OreTooltip amount={Math.min(getSmeltable(), 5)} {...tooltipProps} />
+  );
+
+  const unselectable =
+    disabled ||
+    amount === 0 ||
+    oil < oilPerBar ||
+    charcoal < charcoalPerBar ||
+    lava < lavaPerBar;
+
+  const formattedAmount = formatNumber(amount);
 
   return (
     <div
@@ -73,8 +128,10 @@ const OreDisplay = ({ ore, disabled, setSmelting, oil }: Props) => {
             : undefined
         }
         onClick={unselectable ? undefined : onClick}
+        {...oreProps}
       />
       <span>{formattedAmount}</span>
+      {!unselectable && <OreToolTips />}
     </div>
   );
 };

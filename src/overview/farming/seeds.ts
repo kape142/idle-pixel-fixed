@@ -12,12 +12,6 @@ export const SEEDS: Record<string, SeedData> = {
     time: 15,
     bonemealCost: 0,
   },
-  stardust_seeds: {
-    level: 8,
-    stopsDying: 0,
-    time: 20,
-    bonemealCost: 0,
-  },
   green_leaf_seeds: {
     level: 10,
     stopsDying: 25,
@@ -46,6 +40,18 @@ export const SEEDS: Record<string, SeedData> = {
     level: 1,
     stopsDying: 0,
     time: 5,
+    bonemealCost: 0,
+  },
+  eggplant_seeds: {
+    level: 1,
+    stopsDying: 0,
+    time: 5,
+    bonemealCost: 0,
+  },
+  stardust_seeds: {
+    level: 8,
+    stopsDying: 0,
+    time: 20,
     bonemealCost: 0,
   },
   tree_seeds: {
@@ -83,5 +89,35 @@ export const SEEDS: Record<string, SeedData> = {
     stopsDying: 85,
     time: 17 * 60,
     bonemealCost: 180,
+  },
+  redwood_tree_seeds: {
+    level: 80,
+    stopsDying: 92,
+    time: 22 * 60,
+    bonemealCost: 300,
+  },
+  apple_tree_seeds: {
+    level: 50,
+    stopsDying: 55,
+    time: 8 * 60,
+    bonemealCost: 50,
+  },
+  banana_tree_seeds: {
+    level: 57,
+    stopsDying: 62,
+    time: 11 * 60,
+    bonemealCost: 70,
+  },
+  orange_tree_seeds: {
+    level: 66,
+    stopsDying: 70,
+    time: 15 * 60,
+    bonemealCost: 120,
+  },
+  palm_tree_seeds: {
+    level: 82,
+    stopsDying: 90,
+    time: 19 * 60,
+    bonemealCost: 200,
   },
 };

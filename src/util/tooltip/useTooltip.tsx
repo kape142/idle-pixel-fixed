@@ -1,14 +1,14 @@
 import { MouseEventHandler, ReactElement, useState } from "react";
-import { useIPFDispatch, useIPFSelector } from "../../redux/hooks";
-import { selectOverviewIsOpen } from "../../overview/overviewReducer";
+import { useIPFSelector } from "../../redux/hooks";
 import { selectModifierKeys } from "../keyboard/modiferKeyReducer";
 
 type ReturnType = [
-  {
+  tooltipProps: {
     onMouseOver: MouseEventHandler;
     onMouseOut: MouseEventHandler;
   },
-  () => ReactElement
+  Tooltip: () => ReactElement,
+  hide: () => void
 ];
 
 export const useTooltip = (
@@ -22,12 +22,11 @@ export const useTooltip = (
   const [target, setTarget] = useState<any>(null);
 
   const onMouseOver: MouseEventHandler = (event) => {
-    console.log(event);
     setTarget(event.target);
     setVisible(true);
   };
 
-  const onMouseOut: MouseEventHandler = (event) => {
+  const onMouseOut: MouseEventHandler = () => {
     setVisible(false);
     setTarget(null);
   };
@@ -47,13 +46,51 @@ export const useTooltip = (
               backgroundColor: "rgba(0, 0, 0, 0.9)",
               padding: "10px",
               color: "white",
-              zIndex: 100
+              zIndex: 100,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
             }}
           >
-            {ctrlKey && ctrl ? ctrl : shiftKey && shift ? shift : regular}
+            {shiftKey && shift ? shift : ctrlKey && ctrl ? ctrl : regular}
+            {ctrl || shift ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  gap: "30px",
+                }}
+              >
+                <span
+                  style={{
+                    color: !ctrlKey && !shiftKey ? "#1a9d1a" : "#dddddd",
+                  }}
+                >
+                  [none]
+                </span>
+                {shift && (
+                  <span style={{ color: shiftKey ? "#1a9d1a" : "#dddddd" }}>
+                    [shift]
+                  </span>
+                )}
+                {ctrl && (
+                  <span
+                    style={{
+                      color: !shiftKey && ctrlKey ? "#1a9d1a" : "#dddddd",
+                    }}
+                  >
+                    [ctrl]
+                  </span>
+                )}
+              </div>
+            ) : null}
           </div>
         )}
       </>
     ),
+    () => {
+      setVisible(false);
+      setTarget(null);
+    },
   ];
 };

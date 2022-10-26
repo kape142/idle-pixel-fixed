@@ -1,6 +1,6 @@
 import { reduceToRecord } from "../../util/arrayUtils";
 
-interface Ingredient {
+export interface Ingredient {
   item: string;
   amount: number;
 }
@@ -58,6 +58,10 @@ export const POTIONS: Record<string, PotionData> = {
     level: 25,
     ...getData("super_stardust_potion")
   },
+  gathering_unique_potion: {
+    level: 27,
+    ...getData("gathering_unique_potion")
+  },
   heat_potion: {
     level: 30,
     ...getData("heat_potion")
@@ -77,5 +81,13 @@ export const POTIONS: Record<string, PotionData> = {
   ultra_stardust_potion: {
     level: 50,
     ...getData("ultra_stardust_potion")
+  },
+  rocket_potion: {
+    level: 55,
+    ...getData("rocket_potion")
+  },
+  titanium_potion: {
+    level: 60,
+    ...getData("titanium_potion")
   },
 };

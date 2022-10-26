@@ -1,16 +1,21 @@
 import { useMemo } from "react";
 import { useLocalStorage } from "../util/localstorage/useLocalStorage";
-import { ActivityLogItem, ActivityLogItemType, ActivityLogSettings, LootItem ,} from "./types";
+import {ActivityLogItem, ActivityLogItemType, ActivityLogSettings, initialActivitLogSettings, LootItem,} from "./types";
 import { consumeWebSocketMessage, observeWebSocketMessage, useWebsocket } from "../util/websocket/useWebsocket";
 import { reduceToRecord } from "../util/arrayUtils";
 
-export const useActivityLogWebSocketListener = (
-  settings: ActivityLogSettings
-) => {
+const id = "useActivityLogWebSocketListener"
+export const useActivityLogWebSocketListener = () => {
+  const [settings] = useLocalStorage<ActivityLogSettings>(
+    "activity-log-settings",
+    initialActivitLogSettings,
+    id
+  );
+
   const [list, setList] = useLocalStorage<ActivityLogItem[]>(
     "activity-log",
     [],
-    "useActivityLogWebSocketListener"
+    id
   );
 
   const addItem = (item: ActivityLogItem) =>

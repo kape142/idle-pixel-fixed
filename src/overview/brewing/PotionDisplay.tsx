@@ -1,21 +1,31 @@
 import IPimg from "../../util/IPimg";
-import { reduceToRecord } from "../../util/arrayUtils";
 import { BrewingView } from "./BrewingOverview";
 import { sendMessage } from "../../util/websocket/useWebsocket";
-import React, { MouseEvent, useEffect } from "react";
+import React, { MouseEvent } from "react";
 import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { updateTimer } from "../../util/domOperations";
 import { POTIONS } from "./potions";
 import { useTooltip } from "../../util/tooltip/useTooltip";
+import { BrewingIngredient } from "./useBrewingIngredientsObserver";
+import BrewingTooltip from "./BrewingTooltip";
 
 interface Props {
   potionName: string;
   toggle: () => void;
   view: BrewingView;
   favorite: boolean;
+  brewingLevel: number;
+  brewingIngredients: Record<string, BrewingIngredient>;
 }
 
-const PotionDisplay = ({ potionName, toggle, view, favorite }: Props) => {
+const PotionDisplay = ({
+  potionName,
+  toggle,
+  view,
+  favorite,
+  brewingLevel,
+  brewingIngredients,
+}: Props) => {
   const [amount, setAmount] = useNumberItemObserver(
     potionName,
     "PotionDisplay"
@@ -27,28 +37,35 @@ const PotionDisplay = ({ potionName, toggle, view, favorite }: Props) => {
 
   const hasPotionStacker =
     Number(Items.getItem("donor_potion_stacker_timestamp")) === 1;
-  const hasEasyAchievement = Achievements.has_completed_set("brewing", "medium");
+  const hasEasyAchievement = Achievements.has_completed_set(
+    "brewing",
+    "medium"
+  );
 
   const maxPotions =
     1 + (hasPotionStacker ? 1 : 0) + (hasEasyAchievement ? 1 : 0);
 
-  const { getTime, ingredients } = POTIONS[potionName];
+  const { getTime, ingredients, level } = POTIONS[potionName];
 
   const potionTimer = getTime();
 
   const getMakeable = () =>
-    ingredients.reduce(
-      (acc, cur) =>
-        Math.min(Math.floor(Number(Items.getItem(cur.item)) / cur.amount), acc),
-      Number.MAX_SAFE_INTEGER
-    );
+    brewingLevel >= level
+      ? ingredients.reduce(
+          (acc, cur) =>
+            Math.min(
+              Math.floor(Number(Items.getItem(cur.item)) / cur.amount),
+              acc
+            ),
+          Number.MAX_SAFE_INTEGER
+        )
+      : 0;
 
-  const isDrinkable = amount > 0 && (timer < potionTimer * (maxPotions - 1) || timer === 0)
+  const isDrinkable =
+    amount > 0 && (timer < potionTimer * (maxPotions - 1) || timer === 0);
 
   const onDrinkClick = () => {
-    console.log(amount, timer, potionTimer, maxPotions);
     if (isDrinkable) {
-      setAmount(amount - 1);
       setTimer(timer + potionTimer);
       updateTimer(`potion-${potionName}_timer`, timer + potionTimer);
       setTimeout(() => {
@@ -76,14 +93,19 @@ const PotionDisplay = ({ potionName, toggle, view, favorite }: Props) => {
     <span>Drink {Items.get_pretty_item_name(potionName)}</span>
   );
 
+  const tooltipProps = {
+    potion: potionName,
+    maxAmount: getMakeable(),
+    ingredients,
+    brewingIngredients,
+    brewingLevel,
+    level,
+  };
+
   const [brewProps, BrewToolTip] = useTooltip(
-    <span>Brew {Items.get_pretty_item_name(potionName)}</span>,
-    <span>
-      Brew {getMakeable()} {Items.get_pretty_item_name(potionName)}
-    </span>,
-    <span>
-      Brew {Math.min(getMakeable(), 5)} {Items.get_pretty_item_name(potionName)}
-    </span>
+    <BrewingTooltip amount={Math.min(1, getMakeable())} {...tooltipProps} />,
+    <BrewingTooltip amount={getMakeable()} {...tooltipProps} />,
+    <BrewingTooltip amount={Math.min(5, getMakeable())} {...tooltipProps} />
   );
 
   const [viewProps, ViewToolTip] = useTooltip(
@@ -131,11 +153,6 @@ const PotionDisplay = ({ potionName, toggle, view, favorite }: Props) => {
         <IPimg
           name={potionName}
           size={30}
-          title={
-            view === BrewingView.BREW
-              ? `Max ${getMakeable()}`
-              : Items.get_pretty_item_name(potionName)
-          }
           onClick={onClick}
           role={"button"}
           style={
@@ -170,8 +187,8 @@ const PotionDisplay = ({ potionName, toggle, view, favorite }: Props) => {
           </span>
         )}
       </div>
-      {amount > 0 && <DrinkToolTip />}
-      {getMakeable() > 0 && <BrewToolTip />}
+      {isDrinkable && <DrinkToolTip />}
+      <BrewToolTip />
       <ViewToolTip />
     </>
   );

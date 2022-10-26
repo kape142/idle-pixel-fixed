@@ -1,33 +1,60 @@
-import { useIPFDispatch } from "../../redux/hooks";
 import IPimg from "../../util/IPimg";
 import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { sendMessage } from "../../util/websocket/useWebsocket";
+import { useTooltip } from "../../util/tooltip/useTooltip";
+import React from "react";
 
 interface Props {
   machine: string;
   changeOilOut: (change: number) => void;
-  reqLevel: number;
+  level: number;
+  items: string[];
   miningLevel: number;
 }
 
 const MachineDisplay = ({
   machine,
   changeOilOut,
-  reqLevel,
+  level,
+  items,
   miningLevel,
 }: Props) => {
-  const dispatch = useIPFDispatch();
-
   const oilUse = Ores.getOilCost(machine);
 
-  const [amount, setAmount] = useNumberItemObserver(machine, "MachineDisplay");
+  const [machineProps, MachineTooltip] = useTooltip(
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minWidth: "200px",
+        gap: "15px",
+        alignItems: "center",
+      }}
+    >
+      <span>{Items.get_pretty_item_name(machine)}</span>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-evenly",
+          gap: "10px",
+          minWidth: "200px",
+        }}
+      >
+        {items.map((item) => (
+          <IPimg name={item} size={30} />
+        ))}
+      </div>
+    </div>
+  );
+
+  const [amount] = useNumberItemObserver(machine, "MachineDisplay");
   const [amountOn, setAmountOn] = useNumberItemObserver(
     `${machine}_on`,
     "MachineDisplay"
   );
 
   const onIncrease = () => {
-    if (miningLevel >= reqLevel && amountOn < amount) {
+    if (miningLevel >= level && amountOn < amount) {
       sendMessage("MACHINERY", machine, "increase");
       setAmountOn(amountOn + 1);
       changeOilOut(oilUse);
@@ -42,7 +69,7 @@ const MachineDisplay = ({
     }
   };
 
-  return amount >= 0 ? (
+  return amount > 0 ? (
     <div
       style={{
         display: "flex",
@@ -52,7 +79,7 @@ const MachineDisplay = ({
         alignItems: "center",
       }}
     >
-      <IPimg name={machine} size={50} style={{}} />
+      <IPimg name={machine} size={50} {...machineProps} />
       <div
         style={{
           display: "flex",
@@ -96,7 +123,7 @@ const MachineDisplay = ({
               fontSize: "24px",
               userSelect: "none",
               visibility:
-                miningLevel >= reqLevel && amountOn < amount
+                miningLevel >= level && amountOn < amount
                   ? "visible"
                   : "hidden",
             }}
@@ -106,6 +133,7 @@ const MachineDisplay = ({
           </span>
         </div>
       </div>
+      <MachineTooltip />
     </div>
   ) : null;
 };

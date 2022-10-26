@@ -7,7 +7,11 @@ import WoodcuttingOverview from "./woodcutting/WoodcuttingOverview";
 import CraftingOverview from "./crafting/CraftingOverview";
 import MiningOverview from "./mining/MiningOverview";
 import { useLocalStorage } from "../util/localstorage/useLocalStorage";
-import {ActivityLogItem, ActivityLogSettings} from "../activitylog/types";
+import {
+  ActivityLogItem,
+  ActivityLogSettings,
+  initialActivitLogSettings,
+} from "../activitylog/types";
 import ActivityLogEntry from "../activitylog/ActivityLogEntry";
 import FarmingOverview from "./farming/FarmingOverview";
 import GatheringOverview from "./gathering/GatheringOverview";
@@ -18,10 +22,7 @@ import {
   shiftKeyDown,
   shiftKeyUp,
 } from "../util/keyboard/modiferKeyReducer";
-
-interface OverviewSettings {
-  showActivityLog: boolean
-}
+import OverviewBox from "./OverviewBox";
 
 const id = "OverviewPanel";
 const OverviewPanel = () => {
@@ -29,9 +30,9 @@ const OverviewPanel = () => {
   const overviewIsOpen = useIPFSelector(selectOverviewIsOpen);
   useSetItemsObserver();
 
-  const [settings, setSettings] = useLocalStorage<OverviewSettings>(
-    "overview-settings",
-    { showActivityLog: false },
+  const [settings] = useLocalStorage<ActivityLogSettings>(
+    "activity-log-settings",
+    initialActivitLogSettings,
     id
   );
 
@@ -50,7 +51,6 @@ const OverviewPanel = () => {
       subscribeToKeyboardEvent({
         key: "Control",
         onKeyDown: () => {
-          console.log("ctrlkeydown")
           dispatch(ctrlKeyDown());
         },
         onKeyUp: () => dispatch(ctrlKeyUp()),
@@ -80,7 +80,7 @@ const OverviewPanel = () => {
           display: "flex",
           flexDirection: "column",
           gap: "15px",
-          width: "75%",
+          width: settings.showInOverview ? "75%" : "100%",
         }}
       >
         <div
@@ -96,7 +96,6 @@ const OverviewPanel = () => {
               flexDirection: "column",
               gap: "15px",
               alignItems: "center",
-              width: "50%",
             }}
           >
             <WoodcuttingOverview />
@@ -128,25 +127,22 @@ const OverviewPanel = () => {
           </div>
         </div>
       </div>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "15px",
-          alignItems: "center",
-          width: "25%",
-          fontSize: "8px",
-          overflowY: "auto",
-          overflowX: "hidden",
-          height: "calc(100vh - 200px)",
-          border: "1px solid grey",
-          borderRadius: "10px",
-        }}
-      >
-        {list.slice(0, 25).map((item) => (
-          <ActivityLogEntry item={item} />
-        ))}
-      </div>
+      {settings.showInOverview && (
+        <OverviewBox
+          height={800}
+          width={400}
+          gap={"15px"}
+          fontSize={"8px"}
+          overflowY={"auto"}
+          overflowX={"hidden"}
+          justifyContent={"flex-start"}
+          border={"unset"}
+        >
+          {list.slice(0, 25).map((item) => (
+            <ActivityLogEntry item={item} />
+          ))}
+        </OverviewBox>
+      )}
     </div>
   ) : null;
 };

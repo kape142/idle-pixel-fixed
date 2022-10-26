@@ -1,16 +1,17 @@
-import { useIPFDispatch } from "../../redux/hooks";
 import PotionDisplay from "./PotionDisplay";
 import { useLocalStorage } from "../../util/localstorage/useLocalStorage";
 import { CSSProperties, useMemo, useState } from "react";
 import { toggleInArray } from "../../util/array";
 import IPimg from "../../util/IPimg";
+import { POTIONS } from "./potions";
+import { useTooltip } from "../../util/tooltip/useTooltip";
+import OverviewBox from "../OverviewBox";
+import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
+import { useBrewingIngredientsObserver } from "./useBrewingIngredientsObserver";
 import {
   replaceWebSocketMessage,
   useWebsocket,
 } from "../../util/websocket/useWebsocket";
-import { POTIONS } from "./potions";
-import { useTooltip } from "../../util/tooltip/useTooltip";
-import OverviewBox from "../OverviewBox";
 
 interface Props {}
 
@@ -20,17 +21,21 @@ export enum BrewingView {
   FAVORITE = "FAVORITE",
 }
 
+const id = "BrewingOverview";
 const BrewingOverview = ({}: Props) => {
-  const dispatch = useIPFDispatch();
   const [view, setView] = useState(BrewingView.DRINK);
 
   const potions = Object.keys(POTIONS);
 
+  const brewingIngredients = useBrewingIngredientsObserver(id);
+
   const [favorites, setFavorites] = useLocalStorage(
     "brewing-favorites",
-    potions,
-    "PotionDisplay"
+    potions.slice(0, 15),
+    id
   );
+
+  const [brewingXp] = useNumberItemObserver("brewing_xp", id);
 
   const toggle = (potionName: string) => () => {
     setFavorites((favs) => {
@@ -43,7 +48,7 @@ const BrewingOverview = ({}: Props) => {
     opacity: view === selectorView ? 0.3 : 1,
   });
 
-  const onMessage = useMemo(
+  const blockPopup = useMemo(
     () =>
       replaceWebSocketMessage("OPEN_DIALOGUE", (data) => {
         if (data.split("~")[0] === "INGREDIENTS USED") {
@@ -54,14 +59,19 @@ const BrewingOverview = ({}: Props) => {
     []
   );
 
-  useWebsocket(onMessage, 1, "BrewingOverview");
+  useWebsocket(blockPopup, 1, id);
 
   const [drinkProps, DrinkToolTip] = useTooltip(<span>Drink potions</span>);
   const [brewProps, BrewToolTip] = useTooltip(<span>Brew potions</span>);
   const [viewProps, ViewToolTip] = useTooltip(<span>Hide/show potions</span>);
 
   return (
-    <OverviewBox height={250} width={300} flexDirection={"row"} alignItems={"stretch"}>
+    <OverviewBox
+      height={250}
+      width={300}
+      flexDirection={"row"}
+      alignItems={"stretch"}
+    >
       <div
         style={{
           display: "flex",
@@ -110,16 +120,19 @@ const BrewingOverview = ({}: Props) => {
             display: "flex",
             flexWrap: "wrap",
             alignContent: "flex-start",
+            overflowY: "auto",
           }}
         >
           {(view === BrewingView.FAVORITE ? potions : favorites).map(
             (potion) => (
               <PotionDisplay
+                brewingLevel={get_level(brewingXp)}
                 key={potion}
                 potionName={potion}
                 toggle={toggle(potion)}
                 view={view}
                 favorite={favorites.includes(potion)}
+                brewingIngredients={brewingIngredients}
               />
             )
           )}

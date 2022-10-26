@@ -1,14 +1,16 @@
 import IPimg from "../../util/IPimg";
-import { MouseEvent } from "react";
+import React, { MouseEvent } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
+import { useTooltip } from "../../util/tooltip/useTooltip";
+import GatheringBagTooltip from "./GatheringBagTooltip";
 
 interface Props {
   area: string;
 }
 
 const GatheringBagDisplay = ({ area }: Props) => {
-  const itemName = `gathering_loot_bag_${area}`
+  const itemName = `gathering_loot_bag_${area}`;
   const [amount, setAmount] = useNumberItemObserver(
     itemName,
     `GatheringBagDisplay-${area}`
@@ -22,6 +24,9 @@ const GatheringBagDisplay = ({ area }: Props) => {
       making = Math.floor(making / 2);
     }
     if (making > 0) {
+      if (making === amount) {
+        hideTooltip();
+      }
       setAmount(amount - making);
       sendMessage("OPEN_GATHERING_LOOT", area, making);
     }
@@ -36,7 +41,21 @@ const GatheringBagDisplay = ({ area }: Props) => {
       ? `${(amount / 1_000).toFixed(5 - Math.floor(Math.log10(amount)))}k`
       : `${(amount / 1_000_000).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
 
-  return (
+  const tooltipProps = {
+    area: area,
+    maxAmount: amount,
+  };
+
+  const [bagProps, BagToolTip, hideTooltip] = useTooltip(
+    <GatheringBagTooltip amount={amount} {...tooltipProps} />,
+    <GatheringBagTooltip
+      amount={Math.max(Math.floor(amount / 2), 1)}
+      {...tooltipProps}
+    />,
+    <GatheringBagTooltip amount={Math.min(5, amount)} {...tooltipProps} />
+  );
+
+  return amount > 0 ? (
     <div
       style={{
         display: "flex",
@@ -59,11 +78,12 @@ const GatheringBagDisplay = ({ area }: Props) => {
             : undefined
         }
         onClick={unselectable ? undefined : onClick}
-        title={Items.get_pretty_item_name(itemName)}
+        {...bagProps}
       />
       <span>{formattedAmount}</span>
+      <BagToolTip />
     </div>
-  );
+  ) : null;
 };
 
 export default GatheringBagDisplay;

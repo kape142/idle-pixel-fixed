@@ -17,4 +17,19 @@ export const timeSince = (timestamp: Date | string) => {
   return `${Math.floor(years)}y`
 }
 
+export const formatMinutes = (minutes: number) => {
+  let text = ""
+  if(minutes > 60){
+    text += `${Math.floor(minutes/60)} hours`
+  }
+  if(minutes % 60 !== 0){
+    if(text.length > 0){
+      text += ", "
+    }
+    text += `${minutes % 60} min`
+  }
+
+  return text;
+}
+
 export const formatDate = (timestamp: Date | string) => new Date(timestamp).toLocaleString()

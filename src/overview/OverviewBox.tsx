@@ -13,10 +13,13 @@ const OverviewBox = ({ width, height, children, ...style }: PropsWithChildren<Pr
         height: `${height}px`,
         width: `${width}px`,
         gap: "5px",
-        border: "1px solid black",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
+        borderRadius: "30px",
+        backgroundColor: "#b1d6dc",
+        border: "10px solid #b1d6dc",
+        boxSizing: "content-box",
         ...style
       }}
     >

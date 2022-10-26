@@ -17,7 +17,6 @@ export const modifierKeySlice = createSlice({
   initialState: initialState,
   reducers: {
     ctrlKeyDown(state) {
-      console.log("ctrlkeydown in reducer")
       state.ctrlKey = true;
     },
     ctrlKeyUp(state) {
@@ -29,15 +28,15 @@ export const modifierKeySlice = createSlice({
     shiftKeyUp(state) {
       state.shiftKey = false;
     },
+    resetModifierKeys(state) {
+      state.ctrlKey = false;
+      state.shiftKey = false;
+    },
   },
 });
 
-export const {
-  ctrlKeyDown,
-  ctrlKeyUp,
-  shiftKeyDown,
-  shiftKeyUp,
-} = modifierKeySlice.actions;
+export const { ctrlKeyDown, ctrlKeyUp, shiftKeyDown, shiftKeyUp, resetModifierKeys } =
+  modifierKeySlice.actions;
 
 export const selectModifierKeys = (state: RootState) => state.modifierKey;
 
