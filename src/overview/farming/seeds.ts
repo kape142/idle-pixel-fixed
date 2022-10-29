@@ -28,7 +28,7 @@ export const SEEDS: Record<string, SeedData> = {
     level: 50,
     stopsDying: 60,
     time: 2 * 60,
-    bonemealCost: 10,
+    bonemealCost: 5,
   },
   crystal_leaf_seeds: {
     level: 70,

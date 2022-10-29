@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.1
+// @version      1.0.2
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -2118,7 +2118,7 @@ var __objRest = (source, exclude) => {
       level: 50,
       stopsDying: 60,
       time: 2 * 60,
-      bonemealCost: 10
+      bonemealCost: 5
     },
     crystal_leaf_seeds: {
       level: 70,
