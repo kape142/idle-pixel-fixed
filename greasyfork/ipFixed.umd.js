@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.2
+// @version      1.0.3
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -2592,7 +2592,8 @@ var __objRest = (source, exclude) => {
       style: {
         display: "flex",
         gap: "15px",
-        justifyContent: "space-around"
+        justifyContent: "space-around",
+        flexWrap: "wrap"
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
