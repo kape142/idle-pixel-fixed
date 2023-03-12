@@ -79,7 +79,12 @@ const MachineDisplay = ({
         alignItems: "center",
       }}
     >
-      <IPimg name={machine} size={50} {...machineProps} />
+      {amountOn > 0 ? (
+        <IPimg name={machine} size={50} className="shake" {...machineProps} />
+      ) : (
+        <IPimg name={machine} size={50} {...machineProps} />
+      )}
+      
       <div
         style={{
           display: "flex",

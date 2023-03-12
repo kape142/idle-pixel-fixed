@@ -15,15 +15,18 @@ const LabeledIPimg = ({
   label,
   size,
   style,
+  width,
   ...rest
 }: PropsWithHTMLElementAttributes<Props>) => {
+  const appliedWidth = width ? width : (size ?? 0) + 20;
+  
   return (
     <div
       style={{
         display: "flex",
         gap: "10px",
         flexDirection: "column",
-        width: `${(size ?? 0) + 20}px`,
+        width: `${appliedWidth}px`,
         justifyContent: "flex-end",
         alignItems: "center",
         height: "100%",

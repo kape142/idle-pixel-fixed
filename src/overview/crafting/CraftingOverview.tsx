@@ -88,7 +88,12 @@ const CraftingOverview = () => {
             width: "150px",
           }}
         >
-          <IPimg name={furnace} size={50} />
+          {oreType !== "none" ? (
+            <IPimg name={furnace} size={50} ext="gif" />
+          ) : (
+            <IPimg name={furnace} size={50} />
+          )}
+
           <div
             style={{
               display: "flex",

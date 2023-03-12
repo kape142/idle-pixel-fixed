@@ -3,6 +3,7 @@ import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import MachineDisplay from "./MachineDisplay";
 import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
+import LabeledIPimg from "../../util/LabeledIPimg";
 import { useState } from "react";
 
 const id = "MiningOverview";
@@ -17,8 +18,24 @@ const MiningOverview = () => {
 
   return (
     <OverviewBox height={250} width={400}>
-      <IPimg name={"oil"} size={50} style={{}} />
-      <span>{`+${oilIn} / -${oilOut}`}</span>
+
+      <div 
+        style={{ 
+          display: "flex",
+          width: "100%",
+          justifyContent: "space-evenly",
+        }}
+      >
+        <LabeledIPimg
+          name={"oil"}
+          label={`+${oilIn} / -${oilOut}`}
+          size={50}
+          width={120}
+          style={{ justifyContent: "center" }}
+        />
+
+      </div>
+
       <div
         style={{
           display: "flex",
