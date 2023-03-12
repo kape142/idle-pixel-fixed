@@ -4,7 +4,7 @@ import MachineDisplay from "./MachineDisplay";
 import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
 import LabeledIPimg from "../../util/LabeledIPimg";
-import { useState } from "react";
+import { useState, MouseEvent } from "react";
 
 const id = "MiningOverview";
 const MiningOverview = () => {
@@ -21,6 +21,10 @@ const MiningOverview = () => {
   const [rocketKm] = useNumberItemObserver("rocket_km", id);
   const [rocketDistanceRequired] = useNumberItemObserver("rocket_distance_required", id);
   const [rocketFuel] = useNumberItemObserver("rocket_fuel", id);
+
+  const onRocketClick = (event: MouseEvent) => {
+    Modals.clicks_rocket();
+  };
 
   return (
     <OverviewBox height={250} width={400}>
@@ -56,7 +60,10 @@ const MiningOverview = () => {
                 name={rocketKm > 0 ? "rocket" : "rocket_idle"}
                 ext={rocketKm > 0 ? "gif" : "png"}
                 size={50}
+                onClick={onRocketClick}
                 className={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : ""}
+                title={Items.get_pretty_item_name("rocket")}
+                role={"button"}
               />
               <span>{Items.get_pretty_item_name(rocketStatus)}</span>
             </div>
