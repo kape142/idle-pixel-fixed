@@ -1,5 +1,5 @@
 import IPimg from "../../util/IPimg";
-import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
+import { useItemObserver, useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import MachineDisplay from "./MachineDisplay";
 import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
@@ -16,6 +16,12 @@ const MiningOverview = () => {
 
   const changeOilOut = (change: number) => setOilOut(oilOut + change);
 
+  const [rocket] = useNumberItemObserver("rocket", id);
+  const [rocketStatus] = useItemObserver("rocket_status", id);
+  const [rocketKm] = useNumberItemObserver("rocket_km", id);
+  const [rocketDistanceRequired] = useNumberItemObserver("rocket_distance_required", id);
+  const [rocketFuel] = useNumberItemObserver("rocket_fuel", id);
+
   return (
     <OverviewBox height={250} width={400}>
 
@@ -30,10 +36,39 @@ const MiningOverview = () => {
           name={"oil"}
           label={`+${oilIn} / -${oilOut}`}
           size={50}
-          width={120}
+          width={100}
           style={{ justifyContent: "center" }}
         />
 
+        { rocket > 0 ? (
+          <>
+            <div 
+              style={{ 
+                display: "flex",
+                gap: "10px",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+              }}
+            >
+              <IPimg
+                name={rocketKm > 0 ? "rocket" : "rocket_idle"}
+                ext={rocketKm > 0 ? "gif" : "png"}
+                size={50}
+                className={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : ""}
+              />
+              <span>{Items.get_pretty_item_name(rocketStatus)}</span>
+            </div>
+
+            <LabeledIPimg
+              name={"rocket_fuel"}
+              label={rocketFuel}
+              size={50}
+              style={{ justifyContent: "center" }}
+            />
+           </> 
+        ):""}
       </div>
 
       <div
