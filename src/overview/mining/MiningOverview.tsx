@@ -1,10 +1,13 @@
 import IPimg from "../../util/IPimg";
 import { useItemObserver, useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import MachineDisplay from "./MachineDisplay";
+import GeodeDisplay from "./GeodeDisplay";
 import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
 import LabeledIPimg from "../../util/LabeledIPimg";
 import { useState, MouseEvent } from "react";
+
+const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
 
 const id = "MiningOverview";
 const MiningOverview = () => {
@@ -27,7 +30,7 @@ const MiningOverview = () => {
   };
 
   return (
-    <OverviewBox height={250} width={400}>
+    <OverviewBox height={"auto"} width={400}>
 
       <div
         style={{
@@ -39,8 +42,7 @@ const MiningOverview = () => {
         <LabeledIPimg
           name={"oil"}
           label={`${oilIn > oilOut ? "+" : ""}${oilIn - oilOut}`}
-          size={50}
-          width={100}
+          size={30}
           style={{
             justifyContent: "center",
             color: oilIn >= oilOut ? "#000000" : "#ff0000",
@@ -63,7 +65,7 @@ const MiningOverview = () => {
               <IPimg
                 name={rocketKm > 0 ? "rocket" : "rocket_idle"}
                 ext={rocketKm > 0 ? "gif" : "png"}
-                size={50}
+                size={30}
                 onClick={onRocketClick}
                 className={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : ""}
                 title={Items.get_pretty_item_name("rocket")}
@@ -75,7 +77,7 @@ const MiningOverview = () => {
             <LabeledIPimg
               name={"rocket_fuel"}
               label={rocketFuel}
-              size={50}
+              size={30}
               style={{ justifyContent: "center" }}
             />
           </>
@@ -97,6 +99,16 @@ const MiningOverview = () => {
             miningLevel={miningLevel}
             key={machine}
           />
+        ))}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+        }}
+      >
+        {GEODES.map((geode) => (
+          <GeodeDisplay geode={geode} key={geode} />
         ))}
       </div>
     </OverviewBox>

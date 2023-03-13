@@ -1,8 +1,9 @@
 import {CSSProperties, PropsWithChildren} from "react";
+import { isNumber } from "../util/typeGuards";
 
 interface Props {
   width: number;
-  height: number;
+  height: number | string;
 }
 
 const OverviewBox = ({ width, height, children, ...style }: PropsWithChildren<Props> & CSSProperties) => {
@@ -10,7 +11,8 @@ const OverviewBox = ({ width, height, children, ...style }: PropsWithChildren<Pr
     <div
       style={{
         display: "flex",
-        height: `${height}px`,
+        height: isNumber(height) ? `${height}px` : height,
+        minHeight: `250px`,
         width: `${width}px`,
         gap: "5px",
         flexDirection: "column",
