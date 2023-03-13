@@ -1,3 +1,5 @@
+import IPimg from "../../util/IPimg";
+import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import WoodcuttingPatch from "./WoodcuttingPatch";
 import { useTreePatchesObserver } from "./useTreePatchesObserver";
 import { hideElementById } from "../../util/domOperations";
@@ -30,6 +32,8 @@ const WoodcuttingOverview = () => {
     }
   };
 
+  const [heat] = useNumberItemObserver("heat", id);
+
   return (
     <OverviewBox height={250} width={550} justifyContent={"space-between"}>
       <div
@@ -39,6 +43,24 @@ const WoodcuttingOverview = () => {
           flexWrap: "wrap",
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            marginTop: "5px",
+            gap: "10px",
+            width: "50px",
+            alignItems: "center",
+          }}
+        >
+          <IPimg
+            name={"heat"}
+            size={20}
+            title={Items.get_pretty_item_name("heat")}
+          />
+          <span>{heat}</span>
+        </div>
+
         {logs.map((log) => (
           <LogDisplay log={log} key={log} />
         ))}
