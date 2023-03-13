@@ -9,7 +9,7 @@ import { useState, MouseEvent } from "react";
 const id = "MiningOverview";
 const MiningOverview = () => {
   const [oilIn] = useNumberItemObserver("oil_in", id);
-  const [oilOut, setOilOut] = useState(Items.getItem("oil_out"));
+  const [oilOut, setOilOut] = useNumberItemObserver("oil_out", id);
 
   const [miningXp] = useNumberItemObserver("mining_xp", id);
   const miningLevel = get_level(miningXp);
@@ -29,8 +29,8 @@ const MiningOverview = () => {
   return (
     <OverviewBox height={250} width={400}>
 
-      <div 
-        style={{ 
+      <div
+        style={{
           display: "flex",
           width: "100%",
           justifyContent: "space-evenly",
@@ -38,16 +38,20 @@ const MiningOverview = () => {
       >
         <LabeledIPimg
           name={"oil"}
-          label={`+${oilIn} / -${oilOut}`}
+          label={`${oilIn > oilOut ? "+" : ""}${oilIn - oilOut}`}
           size={50}
           width={100}
-          style={{ justifyContent: "center" }}
+          style={{
+            justifyContent: "center",
+            color: oilIn >= oilOut ? "#000000" : "#ff0000",
+            filter: oilIn >= oilOut ? "" : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)",
+          }}
         />
 
-        { rocket > 0 ? (
+        {rocket > 0 &&
           <>
-            <div 
-              style={{ 
+            <div
+              style={{
                 display: "flex",
                 gap: "10px",
                 flexDirection: "column",
@@ -74,8 +78,8 @@ const MiningOverview = () => {
               size={50}
               style={{ justifyContent: "center" }}
             />
-           </> 
-        ):""}
+          </>
+        }
       </div>
 
       <div
