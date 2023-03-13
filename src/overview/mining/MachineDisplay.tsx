@@ -79,60 +79,66 @@ const MachineDisplay = ({
         alignItems: "center",
       }}
     >
-
       <IPimg name={machine} size={50} className={amountOn > 0 ? "shake" : ""} {...machineProps} />
-      
       <div
         style={{
           display: "flex",
-          gap: "5px",
+          flexDirection: "column",
+          gap: "0px",
+          width: "min-content",
           alignItems: "center",
-        }}
-      >
-        <IPimg name={"oil"} size={20} />
-        <span>{`${oilUse * amountOn} (${oilUse})`}</span>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          gap: "5px",
-          width: "max-content",
         }}
       >
         <div
           style={{
             display: "flex",
+            gap: "5px",
             alignItems: "center",
           }}
         >
-          <span
-            role="button"
+          <IPimg name={"oil"} size={20} />
+          <span>{`${oilUse * amountOn} (${oilUse})`}</span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "5px",
+            width: "max-content",
+          }}
+        >
+          <div
             style={{
-              fontWeight: "500",
-              fontSize: "24px",
-              userSelect: "none",
-              visibility: amountOn > 0 ? "visible" : "hidden",
+              display: "flex",
+              alignItems: "center",
             }}
-            onClick={onDecrease}
           >
-            {"<"}
-          </span>
-          <span style={{ margin: "0 10px" }}>{`${amountOn} / ${amount}`}</span>
-          <span
-            role="button"
-            style={{
-              fontWeight: "500",
-              fontSize: "24px",
-              userSelect: "none",
-              visibility:
-                miningLevel >= level && amountOn < amount
-                  ? "visible"
-                  : "hidden",
-            }}
-            onClick={onIncrease}
-          >
-            {">"}
-          </span>
+            <span
+              role="button"
+              style={{
+                fontWeight: "500",
+                userSelect: "none",
+                visibility: amountOn > 0 ? "visible" : "hidden",
+              }}
+              onClick={onDecrease}
+            >
+              {"<"}
+            </span>
+            <span style={{ margin: "0 10px" }}>{`${amountOn} / ${amount}`}</span>
+            <span
+              role="button"
+              style={{
+                fontWeight: "500",
+                userSelect: "none",
+                visibility:
+                  miningLevel >= level && amountOn < amount
+                    ? "visible"
+                    : "hidden",
+              }}
+              onClick={onIncrease}
+            >
+              {">"}
+            </span>
+          </div>
         </div>
       </div>
       <MachineTooltip />
