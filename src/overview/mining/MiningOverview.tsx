@@ -63,8 +63,8 @@ const MiningOverview = () => {
               }}
             >
               <IPimg
-                name={rocketKm > 0 ? "rocket" : "rocket_idle"}
-                ext={rocketKm > 0 ? "gif" : "png"}
+                name={rocketKm > 0 && rocketKm < rocketDistanceRequired  ? "rocket" : "rocket_idle"}
+                ext={rocketKm > 0 && rocketKm < rocketDistanceRequired  ? "gif" : "png"}
                 size={30}
                 onClick={onRocketClick}
                 className={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : ""}
