@@ -29,6 +29,12 @@ const MiningOverview = () => {
     Modals.clicks_rocket();
   };
 
+  const [moonstone] = useNumberItemObserver("moonstone", id);
+
+  const onMoonstoneClick = (event: MouseEvent) => {
+    Modals.open_custom_crafting('moonstone')
+  };
+
   return (
     <OverviewBox height={"auto"} width={400}>
 
@@ -63,8 +69,8 @@ const MiningOverview = () => {
               }}
             >
               <IPimg
-                name={rocketKm > 0 && rocketKm < rocketDistanceRequired  ? "rocket" : "rocket_idle"}
-                ext={rocketKm > 0 && rocketKm < rocketDistanceRequired  ? "gif" : "png"}
+                name={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "rocket" : "rocket_idle"}
+                ext={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "gif" : "png"}
                 size={30}
                 onClick={onRocketClick}
                 className={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : ""}
@@ -110,6 +116,27 @@ const MiningOverview = () => {
         {GEODES.map((geode) => (
           <GeodeDisplay geode={geode} key={geode} />
         ))}
+
+        {moonstone > 0 &&
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+              width: "50px",
+              alignItems: "center",
+            }}
+          >
+            <IPimg
+              name={"moonstone"}
+              size={30}
+              onClick={onMoonstoneClick}
+              title={Items.get_pretty_item_name("Moonstone")}
+              role={"button"}
+            />
+            <span>{moonstone}</span>
+          </div>
+        }
       </div>
     </OverviewBox>
   );

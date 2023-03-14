@@ -1939,6 +1939,10 @@ var __objRest = (source, exclude) => {
     const onRocketClick = (event) => {
       Modals.clicks_rocket();
     };
+    const [moonstone] = useNumberItemObserver("moonstone", id$5);
+    const onMoonstoneClick = (event) => {
+      Modals.open_custom_crafting("moonstone");
+    };
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: "auto",
       width: 400
@@ -1954,7 +1958,7 @@ var __objRest = (source, exclude) => {
       size: 30,
       style: {
         justifyContent: "center",
-        color: oilIn >= oilOut ? "#FFF" : "#ff0000",
+        color: oilIn >= oilOut ? "#fff" : "#ff0000",
         filter: oilIn >= oilOut ? "" : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)"
       }
     }), rocket > 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", {
@@ -1999,7 +2003,21 @@ var __objRest = (source, exclude) => {
     }, GEODES.map((geode) => /* @__PURE__ */ React.createElement(GeodeDisplay, {
       geode,
       key: geode
-    }))));
+    })), moonstone > 0 && /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: "moonstone",
+      size: 30,
+      onClick: onMoonstoneClick,
+      title: Items.get_pretty_item_name("Moonstone"),
+      role: "button"
+    }), /* @__PURE__ */ React.createElement("span", null, moonstone))));
   };
   const getDeathImage = (seed) => seed.includes("leaf") ? "farming_dead_leaf" : seed.includes("tree") ? "farming_dead_tree" : "farming_dead_mushroom";
   const FarmingPatch = ({
