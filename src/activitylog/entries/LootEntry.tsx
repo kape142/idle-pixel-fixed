@@ -10,7 +10,7 @@ const LootEntry = ({ content, timestamp }: Props) => {
   return (
     <div
       style={{
-        borderBottom: "1px solid grey",
+        borderBottom: "1px solid #fff",
         margin: "1em",
         padding: "1em",
         width: "100%",
@@ -36,7 +36,6 @@ const LootEntry = ({ content, timestamp }: Props) => {
         <div
           title={formatDate(timestamp)}
           style={{
-            color: "gray",
             width: "5em",
           }}
         >
@@ -73,6 +72,8 @@ const LootEntry = ({ content, timestamp }: Props) => {
             <span
               style={{
                 fontSize: "1.6em",
+                color: "#000",
+                textShadow: "none",
               }}
             >
               {item.label}

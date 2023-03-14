@@ -45,7 +45,7 @@ const MiningOverview = () => {
           size={30}
           style={{
             justifyContent: "center",
-            color: oilIn >= oilOut ? "#000000" : "#ff0000",
+            color: oilIn >= oilOut ? "#fff" : "#ff0000",
             filter: oilIn >= oilOut ? "" : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)",
           }}
         />

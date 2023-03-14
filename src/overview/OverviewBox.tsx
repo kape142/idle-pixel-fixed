@@ -1,4 +1,5 @@
-import {CSSProperties, PropsWithChildren} from "react";
+import { useItemObserver, useNumberItemObserver } from "./setItems/useSetItemsObserver";
+import { CSSProperties, PropsWithChildren } from "react";
 import { isNumber } from "../util/typeGuards";
 
 interface Props {
@@ -6,7 +7,11 @@ interface Props {
   height: number | string;
 }
 
+const id = "OverviewBox";
 const OverviewBox = ({ width, height, children, ...style }: PropsWithChildren<Props> & CSSProperties) => {
+
+  const [uiMenuBackgroundColor] = useItemObserver("ui_menu_background_color", id);
+
   return (
     <div
       style={{
@@ -18,15 +23,17 @@ const OverviewBox = ({ width, height, children, ...style }: PropsWithChildren<Pr
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: "30px",
-        backgroundColor: "#b1d6dc",
-        border: "10px solid #b1d6dc",
+        borderRadius: "10px",
+        color: "#fff",
+        textShadow: "1px 1px #000, 0px 0px 3px #000",
+        backgroundColor: uiMenuBackgroundColor !== "none" ? uiMenuBackgroundColor + "aa" : "#004c4eaa",
+        padding: "10px",
         boxSizing: "content-box",
         ...style
       }}
     >
       {children}
-    </div>
+    </div >
   );
 };
 

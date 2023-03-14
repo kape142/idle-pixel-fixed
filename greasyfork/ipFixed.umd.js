@@ -121,7 +121,7 @@ var __objRest = (source, exclude) => {
   const LootEntry = ({ content, timestamp }) => {
     return /* @__PURE__ */ React.createElement("div", {
       style: {
-        borderBottom: "1px solid grey",
+        borderBottom: "1px solid #fff",
         margin: "1em",
         padding: "1em",
         width: "100%"
@@ -141,7 +141,6 @@ var __objRest = (source, exclude) => {
     }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Loot"), /* @__PURE__ */ React.createElement("div", {
       title: formatDate(timestamp),
       style: {
-        color: "gray",
         width: "5em"
       }
     }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
@@ -169,7 +168,9 @@ var __objRest = (source, exclude) => {
       alt: `${item.label}-image`
     }), /* @__PURE__ */ React.createElement("span", {
       style: {
-        fontSize: "1.6em"
+        fontSize: "1.6em",
+        color: "#000",
+        textShadow: "none"
       }
     }, item.label)))));
   };
@@ -194,16 +195,18 @@ var __objRest = (source, exclude) => {
     var _b = _a, {
       name,
       size,
+      ext,
       className,
       style
     } = _b, rest = __objRest(_b, [
       "name",
       "size",
+      "ext",
       "className",
       "style"
     ]);
     return /* @__PURE__ */ React.createElement("img", __spreadValues({
-      src: get_image(`images/${name}.png`),
+      src: ext ? get_image(`images/${name}.${ext}`) : get_image(`images/${name}.png`),
       alt: name,
       className: classNames({ [`w${size}`]: !!size }, className),
       style: __spreadValues({ objectFit: "cover" }, style)
@@ -415,10 +418,10 @@ var __objRest = (source, exclude) => {
     });
     return acc;
   }, []).map((t) => t);
-  const id$c = "useActivityLogWebSocketListener";
+  const id$d = "useActivityLogWebSocketListener";
   const useActivityLogWebSocketListener = () => {
-    const [settings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$c);
-    const [list, setList] = useLocalStorage("activity-log", [], id$c);
+    const [settings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$d);
+    const [list, setList] = useLocalStorage("activity-log", [], id$d);
     const addItem = (item) => setList((list2) => [item].concat(list2).slice(0, 200));
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
     const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
@@ -505,9 +508,9 @@ var __objRest = (source, exclude) => {
     blockDialogues: "Block loot pop-ups",
     showInOverview: "Show activity log in Overview"
   };
-  const id$b = "ActivityLogSettingsWindow";
+  const id$c = "ActivityLogSettingsWindow";
   const ActivityLogSettingsWindow = ({ open, setOpen }) => {
-    const [settings, setSettings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$b);
+    const [settings, setSettings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$c);
     const toggleSetting = (name) => {
       setSettings((oldValue) => __spreadProps(__spreadValues({}, oldValue), { [name]: !oldValue[name] }));
     };
@@ -564,7 +567,7 @@ var __objRest = (source, exclude) => {
       }
     }, "X")))));
   };
-  const id$a = "ActivityLog";
+  const id$b = "ActivityLog";
   const ActivityLog = ({}) => {
     const list = useActivityLogWebSocketListener();
     const open = useIPFSelector(selectActivityLogIsOpen);
@@ -582,10 +585,10 @@ var __objRest = (source, exclude) => {
             dispatch(openActivityLog());
           }
         },
-        id: id$a
+        id: id$b
       }));
       return () => {
-        dispatch(unsubscribeFromKeyboardEvent({ key: "Tab", id: id$a }));
+        dispatch(unsubscribeFromKeyboardEvent({ key: "Tab", id: id$b }));
       };
     }, [open, dispatch, setSettingsOpen]);
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
@@ -1010,19 +1013,22 @@ var __objRest = (source, exclude) => {
       name,
       label,
       size,
-      style
+      style,
+      width
     } = _d, rest = __objRest(_d, [
       "name",
       "label",
       "size",
-      "style"
+      "style",
+      "width"
     ]);
+    const appliedWidth = width ? width : (size != null ? size : 0) + 20;
     return /* @__PURE__ */ React__default["default"].createElement("div", __spreadValues({
       style: __spreadValues({
         display: "flex",
         gap: "10px",
         flexDirection: "column",
-        width: `${(size != null ? size : 0) + 20}px`,
+        width: `${appliedWidth}px`,
         justifyContent: "flex-end",
         alignItems: "center",
         height: "100%"
@@ -1165,20 +1171,25 @@ var __objRest = (source, exclude) => {
       }
     }, "+")), isDrinkable && /* @__PURE__ */ React__default["default"].createElement(DrinkToolTip, null), /* @__PURE__ */ React__default["default"].createElement(BrewToolTip, null), /* @__PURE__ */ React__default["default"].createElement(ViewToolTip, null));
   };
+  const id$a = "OverviewBox";
   const OverviewBox = (_e) => {
     var _f = _e, { width, height, children } = _f, style = __objRest(_f, ["width", "height", "children"]);
+    const [uiMenuBackgroundColor] = useItemObserver("ui_menu_background_color", id$a);
     return /* @__PURE__ */ React.createElement("div", {
       style: __spreadValues({
         display: "flex",
-        height: `${height}px`,
+        height: isNumber(height) ? `${height}px` : height,
+        minHeight: `250px`,
         width: `${width}px`,
         gap: "5px",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: "30px",
-        backgroundColor: "#b1d6dc",
-        border: "10px solid #b1d6dc",
+        borderRadius: "10px",
+        color: "#fff",
+        textShadow: "1px 1px #000, 0px 0px 3px #000",
+        backgroundColor: uiMenuBackgroundColor !== "none" ? uiMenuBackgroundColor + "aa" : "#004c4eaa",
+        padding: "10px",
         boxSizing: "content-box"
       }, style)
     }, children);
@@ -1444,6 +1455,9 @@ var __objRest = (source, exclude) => {
   const id$8 = "LogDisplay";
   const LogDisplay = ({ log }) => {
     const [amount] = useNumberItemObserver(log, id$8);
+    const onLogClick = (event) => {
+      Modals.open_input_dialogue_with_value(log, "Add Heat", "<span class='font-large'>Add heat to your oven.</span><br /><br /><span class='color-grey'>Gain <img src='https://d1xsc8x7nc5q8t.cloudfront.net/images/heat.png' /> " + Cooking.getHeatPerLog(log) + " heat per log.</span><br /><br />", amount, "ADD_HEAT");
+    };
     return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1455,7 +1469,9 @@ var __objRest = (source, exclude) => {
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: log,
       size: 30,
-      title: Items.get_pretty_item_name(log)
+      onClick: onLogClick,
+      title: Items.get_pretty_item_name(log),
+      role: "button"
     }), /* @__PURE__ */ React.createElement("span", null, amount)) : null;
   };
   const id$7 = "WoodcuttingOverview";
@@ -1475,6 +1491,7 @@ var __objRest = (source, exclude) => {
         setStage(0);
       }
     };
+    const [heat] = useNumberItemObserver("heat", id$7);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: 250,
       width: 550,
@@ -1485,7 +1502,20 @@ var __objRest = (source, exclude) => {
         justifyContent: "center",
         flexWrap: "wrap"
       }
-    }, logs.map((log) => /* @__PURE__ */ React.createElement(LogDisplay, {
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        marginTop: "5px",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: "heat",
+      size: 20,
+      title: Items.get_pretty_item_name("heat")
+    }), /* @__PURE__ */ React.createElement("span", null, heat)), logs.map((log) => /* @__PURE__ */ React.createElement(LogDisplay, {
       log,
       key: log
     }))), /* @__PURE__ */ React.createElement("div", {
@@ -1689,7 +1719,8 @@ var __objRest = (source, exclude) => {
       }
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: furnace,
-      size: 50
+      size: 50,
+      ext: oreType !== "none" ? "gif" : "png"
     }), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1803,8 +1834,17 @@ var __objRest = (source, exclude) => {
       }
     }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: machine,
-      size: 50
+      size: 50,
+      className: amountOn > 0 ? "shake" : ""
     }, machineProps)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "0px",
+        width: "min-content",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         gap: "5px",
@@ -1828,7 +1868,6 @@ var __objRest = (source, exclude) => {
       role: "button",
       style: {
         fontWeight: "500",
-        fontSize: "24px",
         userSelect: "none",
         visibility: amountOn > 0 ? "visible" : "hidden"
       },
@@ -1839,12 +1878,32 @@ var __objRest = (source, exclude) => {
       role: "button",
       style: {
         fontWeight: "500",
-        fontSize: "24px",
         userSelect: "none",
         visibility: miningLevel >= level && amountOn < amount ? "visible" : "hidden"
       },
       onClick: onIncrease
-    }, ">"))), /* @__PURE__ */ React__default["default"].createElement(MachineTooltip, null)) : null;
+    }, ">")))), /* @__PURE__ */ React__default["default"].createElement(MachineTooltip, null)) : null;
+  };
+  const GeodeDisplay = ({ geode }) => {
+    const [amount, setAmount] = useNumberItemObserver(geode + "_geode", "GeodeDisplay");
+    const onGeodeClick = (event) => {
+      Modals.open_input_dialogue_with_value(geode + "_geode", "Open", "How many geodes to you want to crack?", amount, "CRACK_GEODE");
+    };
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, amount > 0 && /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: geode + "_geode",
+      size: 30,
+      onClick: onGeodeClick,
+      title: Items.get_pretty_item_name(geode + "_geode"),
+      role: "button"
+    }), /* @__PURE__ */ React.createElement("span", null, amount)));
   };
   const MACHINES = {
     drill: {
@@ -1864,21 +1923,63 @@ var __objRest = (source, exclude) => {
       items: ["gold", "promethium", "titanium"]
     }
   };
+  const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
   const id$5 = "MiningOverview";
   const MiningOverview = () => {
     const [oilIn] = useNumberItemObserver("oil_in", id$5);
-    const [oilOut, setOilOut] = React$1.useState(Items.getItem("oil_out"));
+    const [oilOut, setOilOut] = useNumberItemObserver("oil_out", id$5);
     const [miningXp] = useNumberItemObserver("mining_xp", id$5);
     const miningLevel = get_level(miningXp);
     const changeOilOut = (change) => setOilOut(oilOut + change);
+    const [rocket] = useNumberItemObserver("rocket", id$5);
+    const [rocketStatus] = useItemObserver("rocket_status", id$5);
+    const [rocketKm] = useNumberItemObserver("rocket_km", id$5);
+    const [rocketDistanceRequired] = useNumberItemObserver("rocket_distance_required", id$5);
+    const [rocketFuel] = useNumberItemObserver("rocket_fuel", id$5);
+    const onRocketClick = (event) => {
+      Modals.clicks_rocket();
+    };
     return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
+      height: "auto",
       width: 400
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-evenly"
+      }
+    }, /* @__PURE__ */ React.createElement(LabeledIPimg, {
       name: "oil",
-      size: 50,
-      style: {}
-    }), /* @__PURE__ */ React.createElement("span", null, `+${oilIn} / -${oilOut}`), /* @__PURE__ */ React.createElement("div", {
+      label: `${oilIn > oilOut ? "+" : ""}${oilIn - oilOut}`,
+      size: 30,
+      style: {
+        justifyContent: "center",
+        color: oilIn >= oilOut ? "#FFF" : "#ff0000",
+        filter: oilIn >= oilOut ? "" : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)"
+      }
+    }), rocket > 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: rocketKm > 0 && rocketKm < rocketDistanceRequired ? "rocket" : "rocket_idle",
+      ext: rocketKm > 0 && rocketKm < rocketDistanceRequired ? "gif" : "png",
+      size: 30,
+      onClick: onRocketClick,
+      className: rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : "",
+      title: Items.get_pretty_item_name("rocket"),
+      role: "button"
+    }), /* @__PURE__ */ React.createElement("span", null, Items.get_pretty_item_name(rocketStatus))), /* @__PURE__ */ React.createElement(LabeledIPimg, {
+      name: "rocket_fuel",
+      label: rocketFuel,
+      size: 30,
+      style: { justifyContent: "center" }
+    }))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         width: "100%",
@@ -1890,7 +1991,15 @@ var __objRest = (source, exclude) => {
     }, MACHINES[machine]), {
       miningLevel,
       key: machine
-    })))));
+    })))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px"
+      }
+    }, GEODES.map((geode) => /* @__PURE__ */ React.createElement(GeodeDisplay, {
+      geode,
+      key: geode
+    }))));
   };
   const getDeathImage = (seed) => seed.includes("leaf") ? "farming_dead_leaf" : seed.includes("tree") ? "farming_dead_tree" : "farming_dead_mushroom";
   const FarmingPatch = ({
@@ -2591,7 +2700,7 @@ var __objRest = (source, exclude) => {
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
-        gap: "15px",
+        rowGap: "15px",
         justifyContent: "space-around",
         flexWrap: "wrap"
       }
