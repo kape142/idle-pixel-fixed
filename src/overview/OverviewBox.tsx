@@ -26,7 +26,7 @@ const OverviewBox = ({ width, height, children, ...style }: PropsWithChildren<Pr
         borderRadius: "10px",
         color: "#fff",
         textShadow: "1px 1px #000, 0px 0px 3px #000",
-        backgroundColor: uiMenuBackgroundColor !== "none" ? uiMenuBackgroundColor + "aa" : "#004c4eaa",
+        backgroundColor: (uiMenuBackgroundColor && uiMenuBackgroundColor.charAt(0) === "#") ? uiMenuBackgroundColor + "aa" : "#004c4eaa",
         padding: "10px",
         boxSizing: "content-box",
         ...style
