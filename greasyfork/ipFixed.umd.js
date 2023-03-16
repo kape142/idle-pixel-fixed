@@ -1884,12 +1884,39 @@ var __objRest = (source, exclude) => {
       onClick: onIncrease
     }, ">")))), /* @__PURE__ */ React__default["default"].createElement(MachineTooltip, null)) : null;
   };
+  const GeodeTooltip = ({ geode, amount, postText }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", alignItems: "center", minWidth: "350px" }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Open ", amount, " ", Items.get_pretty_item_name(geode), " Geode(s)"), /* @__PURE__ */ React__default["default"].createElement("div", null, postText));
+  };
   const GeodeDisplay = ({ geode }) => {
-    const [amount, setAmount] = useNumberItemObserver(geode + "_geode", "GeodeDisplay");
+    const [amount, setAmount] = useNumberItemObserver(geode + "_geode", `GeodeDisplay-${geode}`);
     const onGeodeClick = (event) => {
-      Modals.open_input_dialogue_with_value(geode + "_geode", "Open", "How many geodes to you want to crack?", amount, "CRACK_GEODE");
+      if (event.ctrlKey) {
+        hideTooltip();
+        setAmount(amount - 1);
+        sendMessage("CRACK_GEODE", geode + "_geode", 1);
+      } else if (event.shiftKey) {
+        hideTooltip();
+        setAmount(0);
+        sendMessage("CRACK_GEODE", geode + "_geode", amount);
+      } else {
+        Modals.open_input_dialogue_with_value(geode + "_geode", "Open", "How many geodes to you want to crack?", amount, "CRACK_GEODE");
+      }
     };
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, amount > 0 && /* @__PURE__ */ React.createElement("div", {
+    const tooltipProps = {
+      geode
+    };
+    const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip(/* @__PURE__ */ React.createElement(GeodeTooltip, __spreadValues({
+      amount,
+      postText: "(With confirmation)"
+    }, tooltipProps)), /* @__PURE__ */ React.createElement(GeodeTooltip, __spreadValues({
+      amount,
+      postText: "(No confirmation)"
+    }, tooltipProps)), /* @__PURE__ */ React.createElement(GeodeTooltip, __spreadValues({
+      amount: 1
+    }, tooltipProps)));
+    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         flexDirection: "column",
@@ -1897,13 +1924,12 @@ var __objRest = (source, exclude) => {
         width: "50px",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+      role: "button",
       name: geode + "_geode",
       size: 30,
-      onClick: onGeodeClick,
-      title: Items.get_pretty_item_name(geode + "_geode"),
-      role: "button"
-    }), /* @__PURE__ */ React.createElement("span", null, amount)));
+      onClick: onGeodeClick
+    }, geodeProps)), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement(GeodeToolTip, null)) : null;
   };
   const MACHINES = {
     drill: {
