@@ -77,7 +77,7 @@ const MiningOverview = () => {
                 title={Items.get_pretty_item_name("rocket")}
                 role={"button"}
               />
-              <span>{Items.get_pretty_item_name(rocketStatus)}</span>
+              <span>{(rocketStatus && rocketStatus === "none") ? "Idle" : Items.get_pretty_item_name(rocketStatus)}</span>
             </div>
 
             <LabeledIPimg
