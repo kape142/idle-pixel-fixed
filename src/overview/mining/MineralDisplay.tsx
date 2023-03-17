@@ -31,15 +31,15 @@ const MineralDisplay = ({ mineral }: Props) => {
     [
       <Tooltip
         text={`Use ${amount} ` + Items.get_pretty_item_name(mineral) + `(s).`}
-        postText={"(with conformation)"}
+        postText={"(with confirmation)"}
       />,
       <Tooltip
         text={`Convert ${amount} ` + Items.get_pretty_item_name(mineral) + `(s) into ` + Ores.MINERALS_XP_MAP[mineral] * amount + ` mining xp.`}
-        postText={"(no conformation)"}
+        postText={"(no confirmation)"}
       />,
       <Tooltip
         text={`Craft rings with ${amount} ` + Items.get_pretty_item_name(mineral) + `(s).`}
-        postText={"(with conformation)"}
+        postText={"(with confirmation)"}
       />
     ],
     {

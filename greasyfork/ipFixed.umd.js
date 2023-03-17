@@ -968,16 +968,16 @@ var __objRest = (source, exclude) => {
     };
     return [
       { onMouseOver, onMouseOut },
-      () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement("div", {
+      () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", {
         style: {
           width: width ? width + "px" : "200px",
           position: "absolute",
-          bottom: "100%",
+          bottom: "112%",
           left: "50%",
           marginLeft: width ? "-" + width / 2 + "px" : "-100px",
-          border: "1px solid black",
+          border: "1px solid rgba(0, 0, 0, 0.95)",
           borderRadius: "10px",
-          backgroundColor: "rgba(0, 0, 0, 0.9)",
+          backgroundColor: "rgba(0, 0, 0, 0.95)",
           padding: "10px",
           color: "white",
           zIndex: 100,
@@ -1001,7 +1001,19 @@ var __objRest = (source, exclude) => {
         style: {
           color: !shiftKey && ctrlKey ? "#1a9d1a" : "#dddddd"
         }
-      }, "[ctrl]")) : null)),
+      }, "[ctrl]")) : null, /* @__PURE__ */ React.createElement("span", {
+        style: {
+          position: "absolute",
+          top: "100%",
+          left: "50%",
+          marginLeft: "-7px",
+          borderWidth: "7px",
+          borderStyle: "solid",
+          borderColor: "rgba(0, 0, 0, 0.95) transparent transparent transparent",
+          zIndex: 100,
+          pointerEvents: "none"
+        }
+      }, " ")))),
       () => {
         setVisible(false);
         setTarget(null);
@@ -1526,18 +1538,18 @@ var __objRest = (source, exclude) => {
     const [logProps, LogTooltips, hideTooltip] = useTooltip([
       /* @__PURE__ */ React.createElement(LogTooltip, __spreadValues({
         text: "Use",
-        postText: "(with conformation)",
+        postText: "(with confirmation)",
         amount
       }, logTooltipProps)),
       /* @__PURE__ */ React.createElement(LogTooltip, __spreadValues({
         text: "Add",
-        postText: "(no conformation)",
+        postText: "(no confirmation)",
         amount
       }, logTooltipProps)),
       /* @__PURE__ */ React.createElement(LogTooltip, __spreadValues({
         text: "Add",
         amount: Math.floor(amount / 2),
-        postText: "(no conformation)"
+        postText: "(no confirmation)"
       }, logTooltipProps))
     ], {
       width: 250
@@ -1555,7 +1567,6 @@ var __objRest = (source, exclude) => {
       name: log,
       size: 30,
       onClick: onLogClick,
-      title: Items.get_pretty_item_name(log),
       role: "button"
     }, logProps)), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement(LogTooltips, null)) : null;
   };
@@ -2042,15 +2053,15 @@ var __objRest = (source, exclude) => {
     const [mineralProps, MineralToolTip, hideTooltip] = useTooltip([
       /* @__PURE__ */ React.createElement(Tooltip, {
         text: `Use ${amount} ` + Items.get_pretty_item_name(mineral) + `(s).`,
-        postText: "(with conformation)"
+        postText: "(with confirmation)"
       }),
       /* @__PURE__ */ React.createElement(Tooltip, {
         text: `Convert ${amount} ` + Items.get_pretty_item_name(mineral) + `(s) into ` + Ores.MINERALS_XP_MAP[mineral] * amount + ` mining xp.`,
-        postText: "(no conformation)"
+        postText: "(no confirmation)"
       }),
       /* @__PURE__ */ React.createElement(Tooltip, {
         text: `Craft rings with ${amount} ` + Items.get_pretty_item_name(mineral) + `(s).`,
-        postText: "(with conformation)"
+        postText: "(with confirmation)"
       })
     ], {
       width: 260

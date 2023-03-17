@@ -36,20 +36,20 @@ const LogDisplay = ({ log, logHeat }: Props) => {
     [
       <LogTooltip
         text={"Use"}
-        postText={"(with conformation)"}
+        postText={"(with confirmation)"}
         amount={amount}
         {...logTooltipProps}
       />,
       <LogTooltip
         text={"Add"}
-        postText={"(no conformation)"}
+        postText={"(no confirmation)"}
         amount={amount}
         {...logTooltipProps}
       />,
       <LogTooltip
         text={"Add"}
         amount={Math.floor(amount / 2)}
-        postText={"(no conformation)"}
+        postText={"(no confirmation)"}
         {...logTooltipProps}
       />
     ],
@@ -73,7 +73,6 @@ const LogDisplay = ({ log, logHeat }: Props) => {
         name={log}
         size={30}
         onClick={onLogClick}
-        title={Items.get_pretty_item_name(log)}
         role={"button"}
         {...logProps}
       />
