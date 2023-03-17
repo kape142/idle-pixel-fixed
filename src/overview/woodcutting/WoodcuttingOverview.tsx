@@ -35,7 +35,7 @@ const WoodcuttingOverview = () => {
   const [heat] = useNumberItemObserver("heat", id);
 
   return (
-    <OverviewBox height={250} width={550} justifyContent={"space-between"}>
+    <OverviewBox height={250} width={550} justifyContent={"space-evenly"}>
       <div
         style={{
           display: "flex",
@@ -62,7 +62,10 @@ const WoodcuttingOverview = () => {
         </div>
 
         {logs.map((log) => (
-          <LogDisplay log={log} key={log} />
+          <LogDisplay
+            log={log} 
+            logHeat={Cooking.LOG_HEAT_MAP[log]}
+          />
         ))}
       </div>
       <div

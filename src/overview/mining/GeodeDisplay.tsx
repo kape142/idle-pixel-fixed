@@ -3,7 +3,7 @@ import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { MouseEvent } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { useTooltip } from "../../util/tooltip/useTooltip";
-import GeodeTooltip from "./GeodeTooltip";
+import Tooltip from "./Tooltip";
 
 interface Props {
   geode: string;
@@ -17,14 +17,12 @@ const GeodeDisplay = ({ geode }: Props) => {
 
   const onGeodeClick = (event: MouseEvent) => {
     hideTooltip();
-    if (event.ctrlKey) {
+    if (event.shiftKey) {
       setAmount(amount - 1);
-      sendMessage("CRACK_GEODE", geode + "_geode", 1);
-    } else if (event.shiftKey) {
-      setAmount(0);
-      sendMessage("CRACK_GEODE", geode + "_geode", amount);
+      sendMessage("CRACK_GEODE", geode + "_geode", amount - 1);
     } else {
-      Modals.open_input_dialogue_with_value(geode + "_geode", "Open", "How many geodes to you want to crack?", amount, "CRACK_GEODE");
+      setAmount(amount);
+      sendMessage("CRACK_GEODE", geode + "_geode", amount);
     }
   };
 
@@ -33,14 +31,22 @@ const GeodeDisplay = ({ geode }: Props) => {
   };
 
   const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip(
-    <GeodeTooltip amount={amount} postText="(With confirmation)" {...tooltipProps} />,
-    <GeodeTooltip amount={amount} postText="(No confirmation)" {...tooltipProps} />,
-    <GeodeTooltip amount={1} {...tooltipProps} />
+    [
+      <Tooltip
+        text={`Crack ${amount} ` + Items.get_pretty_item_name(geode) + ` Geode(s).`}
+        {...tooltipProps}
+      />,
+      <Tooltip
+        text={`Crack ${amount - 1} ` + Items.get_pretty_item_name(geode) + ` Geode(s).`}
+        {...tooltipProps}
+      />
+    ]
   );
 
   return amount > 0 ? (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",

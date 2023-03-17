@@ -22,29 +22,32 @@ const MachineDisplay = ({
   const oilUse = Ores.getOilCost(machine);
 
   const [machineProps, MachineTooltip] = useTooltip(
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minWidth: "200px",
-        gap: "15px",
-        alignItems: "center",
-      }}
-    >
-      <span>{Items.get_pretty_item_name(machine)}</span>
+    [
       <div
         style={{
           display: "flex",
-          justifyContent: "space-evenly",
-          gap: "10px",
-          minWidth: "200px",
+          flexDirection: "column",
+          gap: "15px",
+          alignItems: "center",
         }}
       >
-        {items.map((item) => (
-          <IPimg name={item} size={30} />
-        ))}
+        <span>{Items.get_pretty_item_name(machine)}</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-evenly",
+            gap: "10px",
+          }}
+        >
+          {items.map((item) => (
+            <IPimg name={item} size={30} />
+          ))}
+        </div>
       </div>
-    </div>
+    ],
+    {
+      width: 230,
+    }
   );
 
   const [amount] = useNumberItemObserver(machine, "MachineDisplay");
@@ -72,6 +75,7 @@ const MachineDisplay = ({
   return amount > 0 ? (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",

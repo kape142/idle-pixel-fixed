@@ -2,12 +2,16 @@ import IPimg from "../../util/IPimg";
 import { useItemObserver, useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import MachineDisplay from "./MachineDisplay";
 import GeodeDisplay from "./GeodeDisplay";
+import MineralDisplay from "./MineralDisplay";
 import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
+import { keysOf } from "../../util/typeUtils";
+
 import LabeledIPimg from "../../util/LabeledIPimg";
 import { useState, MouseEvent } from "react";
 
 const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
+const MINERALS: string[] = keysOf(Ores.MINERALS_XP_MAP);
 
 const id = "MiningOverview";
 const MiningOverview = () => {
@@ -114,9 +118,11 @@ const MiningOverview = () => {
         }}
       >
         {GEODES.map((geode) => (
-          <GeodeDisplay geode={geode} key={geode} />
+          <GeodeDisplay geode={geode} />
         ))}
-
+        {MINERALS.map((mineral) => (
+          <MineralDisplay mineral={mineral} />
+        ))}
         {moonstone > 0 &&
           <div
             style={{

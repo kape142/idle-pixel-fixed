@@ -1,3 +1,4 @@
+import { type } from "os";
 import { MouseEventHandler, ReactElement, useState } from "react";
 import { useIPFSelector } from "../../redux/hooks";
 import { selectModifierKeys } from "../keyboard/modiferKeyReducer";
@@ -11,11 +12,19 @@ type ReturnType = [
   hide: () => void
 ];
 
+type Options = {
+  width?: number;
+}
+
+type TooltipElements =
+  [ReactElement] |
+  [ReactElement, ReactElement] |
+  [ReactElement, ReactElement, ReactElement];
+
 export const useTooltip = (
-  regular: ReactElement,
-  shift?: ReactElement,
-  ctrl?: ReactElement
-): ReturnType => {
+  [regular, shift, ctrl]: TooltipElements,
+  {width}: Options = {}
+  ): ReturnType => {
   const { ctrlKey, shiftKey } = useIPFSelector(selectModifierKeys);
 
   const [visible, setVisible] = useState(false);
@@ -38,9 +47,11 @@ export const useTooltip = (
         {visible && (
           <div
             style={{
+              width: width ? width + "px" : "200px",
               position: "absolute",
-              top: target && `${target.offsetTop}px`,
-              left: target && `${target.offsetLeft + target.offsetWidth}px`,
+              bottom: "100%",
+              left: "50%",
+              marginLeft: width ? "-" + width / 2 + "px" : "-100px",
               border: "1px solid black",
               borderRadius: "10px",
               backgroundColor: "rgba(0, 0, 0, 0.9)",

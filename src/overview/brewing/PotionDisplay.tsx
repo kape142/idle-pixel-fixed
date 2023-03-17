@@ -52,13 +52,13 @@ const PotionDisplay = ({
   const getMakeable = () =>
     brewingLevel >= level
       ? ingredients.reduce(
-          (acc, cur) =>
-            Math.min(
-              Math.floor(Number(Items.getItem(cur.item)) / cur.amount),
-              acc
-            ),
-          Number.MAX_SAFE_INTEGER
-        )
+        (acc, cur) =>
+          Math.min(
+            Math.floor(Number(Items.getItem(cur.item)) / cur.amount),
+            acc
+          ),
+        Number.MAX_SAFE_INTEGER
+      )
       : 0;
 
   const isDrinkable =
@@ -90,7 +90,7 @@ const PotionDisplay = ({
   };
 
   const [drinkProps, DrinkToolTip] = useTooltip(
-    <span>Drink {Items.get_pretty_item_name(potionName)}</span>
+    [<span style={{ textAlign: "center" }}>Drink {Items.get_pretty_item_name(potionName)}</span>]
   );
 
   const tooltipProps = {
@@ -103,35 +103,43 @@ const PotionDisplay = ({
   };
 
   const [brewProps, BrewToolTip] = useTooltip(
-    <BrewingTooltip amount={Math.min(1, getMakeable())} {...tooltipProps} />,
-    <BrewingTooltip amount={getMakeable()} {...tooltipProps} />,
-    <BrewingTooltip amount={Math.min(5, getMakeable())} {...tooltipProps} />
+    [
+      <BrewingTooltip amount={Math.min(1, getMakeable())} {...tooltipProps} />,
+      <BrewingTooltip amount={getMakeable()} {...tooltipProps} />,
+      <BrewingTooltip amount={Math.min(5, getMakeable())} {...tooltipProps} />
+    ],
+    {
+      width: 400
+    }
   );
 
   const [viewProps, ViewToolTip] = useTooltip(
-    <span>
-      {favorite ? "Hide" : "Show"} {Items.get_pretty_item_name(potionName)}
-    </span>
+    [
+      <span style={{ textAlign: "center" }}>
+        {favorite ? "Hide" : "Show"} {Items.get_pretty_item_name(potionName)}
+      </span>
+    ]
   );
 
   const imgProps =
     view === BrewingView.DRINK
       ? drinkProps
       : view === BrewingView.BREW
-      ? brewProps
-      : viewProps;
+        ? brewProps
+        : viewProps;
 
   const onClick =
     view === BrewingView.DRINK
       ? onDrinkClick
       : view === BrewingView.BREW
-      ? onBrewClick
-      : toggle;
+        ? onBrewClick
+        : toggle;
 
   return (
     <>
       <div
         style={{
+          position: "relative",
           width: "50px",
           display: "flex",
           flexDirection: "column",
@@ -157,11 +165,11 @@ const PotionDisplay = ({
           role={"button"}
           style={
             (view === BrewingView.BREW && getMakeable() === 0) ||
-            (view === BrewingView.DRINK && !isDrinkable)
+              (view === BrewingView.DRINK && !isDrinkable)
               ? {
-                  opacity: 0.5,
-                  cursor: "default",
-                }
+                opacity: 0.5,
+                cursor: "default",
+              }
               : undefined
           }
           {...imgProps}
@@ -186,10 +194,10 @@ const PotionDisplay = ({
             +
           </span>
         )}
+        {isDrinkable && <DrinkToolTip />}
+        <BrewToolTip />
+        <ViewToolTip />
       </div>
-      {isDrinkable && <DrinkToolTip />}
-      <BrewToolTip />
-      <ViewToolTip />
     </>
   );
 };

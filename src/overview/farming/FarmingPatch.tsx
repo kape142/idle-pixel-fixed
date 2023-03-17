@@ -15,8 +15,8 @@ const getDeathImage = (seed: string) =>
   seed.includes("leaf")
     ? "farming_dead_leaf"
     : seed.includes("tree")
-    ? "farming_dead_tree"
-    : "farming_dead_mushroom";
+      ? "farming_dead_tree"
+      : "farming_dead_mushroom";
 
 const FarmingPatch = ({
   seed,
@@ -27,16 +27,19 @@ const FarmingPatch = ({
   plotClick,
 }: Props) => {
   const [patchProps, PatchTooltip, hideTooltip] = useTooltip(
-    <span>
-      {shiny ? "Shiny " : ""}
-      {death ? "Dead " : ""}
-      {Items.get_pretty_item_name(seed)}
-    </span>
+    [
+      <span style={{ textAlign: "center" }}>
+        {shiny ? "Shiny " : ""}
+        {death ? "Dead " : ""}
+        {Items.get_pretty_item_name(seed)}
+      </span>
+    ]
   );
 
   return (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

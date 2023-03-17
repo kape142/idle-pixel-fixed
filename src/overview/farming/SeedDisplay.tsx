@@ -51,71 +51,75 @@ const SeedDisplay = ({
   };
 
   const [seedProps, SeedTooltip, hideTooltip] = useTooltip(
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minWidth: "300px",
-        alignItems: "center",
-      }}
-    >
-      <span>
-        {canPlant ? "Plant" : "Can't Plant"} {Items.get_pretty_item_name(seed)}
-      </span>
-      <span>Time: {formatMinutes(time)}</span>
-      <span>
-        Level:{" "}
-        <span style={{ color: farmingLevel < level ? "red" : "unset" }}>
-          {level}
-        </span>
-      </span>
-      {stopsDying > 0 && (
-        <span>
-          Stops Dying:{" "}
-          <span
-            style={{ color: farmingLevel < stopsDying ? "yellow" : "unset" }}
-          >
-            {stopsDying}
-          </span>
-        </span>
-      )}
-      {bonemealCost > 0 && (
-        <LabeledIPimg
-          size={30}
-          name={"bonemeal"}
-          label={bonemealCost}
-          style={{ color: bonemeal < bonemealCost ? "red" : "unset" }}
-        />
-      )}
-    </div>
-  );
-
-  return amount > 0 ? (
-    <>
+    [
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "5px",
-          width: "50px",
           alignItems: "center",
-          opacity: canPlant ? 1 : 0.5,
+          textAlign: "center",
         }}
       >
-        <IPimg
-          name={seed}
-          size={30}
-          onClick={onClick}
-          role={"button"}
-          style={{
-            cursor: canPlant ? "pointer" : "default",
-          }}
-          {...seedProps}
-        />
-        <span>{amount}</span>
+        <span>
+          {canPlant ? "Plant" : "Can't Plant"} {Items.get_pretty_item_name(seed)}
+        </span>
+        <span>Time: {formatMinutes(time)}</span>
+        <span>
+          Level:{" "}
+          <span style={{ color: farmingLevel < level ? "red" : "unset" }}>
+            {level}
+          </span>
+        </span>
+        {stopsDying > 0 && (
+          <span>
+            Stops Dying:{" "}
+            <span
+              style={{ color: farmingLevel < stopsDying ? "yellow" : "unset" }}
+            >
+              {stopsDying}
+            </span>
+          </span>
+        )}
+        {bonemealCost > 0 && (
+          <LabeledIPimg
+            size={30}
+            name={"bonemeal"}
+            label={bonemealCost}
+            style={{ color: bonemeal < bonemealCost ? "red" : "unset" }}
+          />
+        )}
       </div>
+    ],
+    {
+      width: 250,
+    }
+  );
+
+  return amount > 0 ? (
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        gap: "5px",
+        width: "50px",
+        alignItems: "center",
+      }}
+    >
+      <IPimg
+        name={seed}
+        size={30}
+        onClick={onClick}
+        role={"button"}
+        style={{
+          cursor: canPlant ? "pointer" : "default",
+          opacity: canPlant ? 1 : 0.5,
+        }}
+        {...seedProps}
+      />
+      <span>{amount}</span>
       {nextPlot > 0 && <SeedTooltip />}
-    </>
+    </div>
   ) : null;
 };
 

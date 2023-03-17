@@ -38,8 +38,8 @@ const GatheringBagDisplay = ({ area }: Props) => {
     amount < 1_000
       ? `${amount}`
       : amount < 1_000_000
-      ? `${(amount / 1_000).toFixed(5 - Math.floor(Math.log10(amount)))}k`
-      : `${(amount / 1_000_000).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
+        ? `${(amount / 1_000).toFixed(5 - Math.floor(Math.log10(amount)))}k`
+        : `${(amount / 1_000_000).toFixed(8 - Math.floor(Math.log10(amount)))}m`;
 
   const tooltipProps = {
     area: area,
@@ -47,17 +47,23 @@ const GatheringBagDisplay = ({ area }: Props) => {
   };
 
   const [bagProps, BagToolTip, hideTooltip] = useTooltip(
-    <GatheringBagTooltip amount={amount} {...tooltipProps} />,
-    <GatheringBagTooltip
-      amount={Math.max(Math.floor(amount / 2), 1)}
-      {...tooltipProps}
-    />,
-    <GatheringBagTooltip amount={Math.min(5, amount)} {...tooltipProps} />
+    [
+      <GatheringBagTooltip amount={amount} {...tooltipProps} />,
+      <GatheringBagTooltip
+        amount={Math.max(Math.floor(amount / 2), 1)}
+        {...tooltipProps}
+      />,
+      <GatheringBagTooltip amount={Math.min(5, amount)} {...tooltipProps} />
+    ],
+    {
+      width: 350,
+    }
   );
 
   return amount > 0 ? (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -72,9 +78,9 @@ const GatheringBagDisplay = ({ area }: Props) => {
         style={
           unselectable
             ? {
-                opacity: 0.5,
-                cursor: "default",
-              }
+              opacity: 0.5,
+              cursor: "default",
+            }
             : undefined
         }
         onClick={unselectable ? undefined : onClick}

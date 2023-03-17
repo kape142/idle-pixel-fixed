@@ -12,15 +12,21 @@ interface Props {
 
 const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }: Props) => {
   const [patchProps, PatchTooltip, hideTooltip] = useTooltip(
-    <span>
-      {shiny ? "Shiny " : ""}
-      {Items.get_pretty_item_name(type)}
-    </span>
+    [
+      <span style={{ textAlign: "center" }}>
+        {shiny ? "Shiny " : ""}
+        {Items.get_pretty_item_name(type)}
+      </span>
+    ],
+    {
+      width: 150,
+    }
   );
 
   return (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

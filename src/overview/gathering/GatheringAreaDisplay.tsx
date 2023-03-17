@@ -21,23 +21,28 @@ const GatheringAreaDisplay = ({
   selectArea,
 }: Props) => {
   const [areaProps, AreaTooltip] = useTooltip(
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        minWidth: "300px",
-        fontSize: "16px",
-      }}
-    >
-      <span>{Items.get_pretty_item_name(name)}</span>
-      <span style={{ fontSize: "12px" }}>Items: {items}</span>
-    </div>
+    [
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          fontSize: "16px",
+        }}
+      >
+        <span>{Items.get_pretty_item_name(name)}</span>
+        <span style={{ fontSize: "12px" }}>Items: {items}</span>
+      </div>
+    ],
+    {
+      width: 250,
+    }
   );
 
   return (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

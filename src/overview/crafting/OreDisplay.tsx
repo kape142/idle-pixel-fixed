@@ -67,7 +67,7 @@ const OreDisplay = ({
         amountAt: 0,
         amountSet: making,
       });
-      if(amount === making){
+      if (amount === making) {
         hideTooltip();
       }
       setAmount(amount - making);
@@ -88,12 +88,16 @@ const OreDisplay = ({
   };
 
   const [oreProps, OreToolTips, hideTooltip] = useTooltip(
-    <OreTooltip amount={getSmeltable()} {...tooltipProps} />,
-    <OreTooltip
-      amount={Math.max(Math.floor(getSmeltable() / 2), 1)}
-      {...tooltipProps}
-    />,
-    <OreTooltip amount={Math.min(getSmeltable(), 5)} {...tooltipProps} />
+    [
+      <OreTooltip amount={getSmeltable()} {...tooltipProps} />,
+      <OreTooltip
+        amount={Math.max(Math.floor(getSmeltable() / 2), 1)}
+        {...tooltipProps}
+      />,
+      <OreTooltip amount={Math.min(getSmeltable(), 5)} {...tooltipProps} />
+    ], {
+      width: 300,
+    }
   );
 
   const unselectable =
@@ -108,6 +112,7 @@ const OreDisplay = ({
   return (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -122,9 +127,9 @@ const OreDisplay = ({
         style={
           unselectable
             ? {
-                opacity: 0.5,
-                cursor: "default",
-              }
+              opacity: 0.5,
+              cursor: "default",
+            }
             : undefined
         }
         onClick={unselectable ? undefined : onClick}

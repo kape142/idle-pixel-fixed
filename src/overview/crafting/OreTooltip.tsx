@@ -22,7 +22,6 @@ const OreTooltip = ({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        minWidth: "300px",
       }}
     >
       <div>

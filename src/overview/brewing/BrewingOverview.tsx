@@ -13,7 +13,7 @@ import {
   useWebsocket,
 } from "../../util/websocket/useWebsocket";
 
-interface Props {}
+interface Props { }
 
 export enum BrewingView {
   DRINK = "DRINK",
@@ -22,7 +22,7 @@ export enum BrewingView {
 }
 
 const id = "BrewingOverview";
-const BrewingOverview = ({}: Props) => {
+const BrewingOverview = ({ }: Props) => {
   const [view, setView] = useState(BrewingView.DRINK);
 
   const potions = Object.keys(POTIONS);
@@ -61,9 +61,9 @@ const BrewingOverview = ({}: Props) => {
 
   useWebsocket(blockPopup, 1, id);
 
-  const [drinkProps, DrinkToolTip] = useTooltip(<span>Drink potions</span>);
-  const [brewProps, BrewToolTip] = useTooltip(<span>Brew potions</span>);
-  const [viewProps, ViewToolTip] = useTooltip(<span>Hide/show potions</span>);
+  const [drinkProps, DrinkToolTip] = useTooltip([<span style={{ textAlign: "center" }}>Drink potions</span>]);
+  const [brewProps, BrewToolTip] = useTooltip([<span style={{ textAlign: "center" }}>Brew potions</span>]);
+  const [viewProps, ViewToolTip] = useTooltip([<span style={{ textAlign: "center" }}>Hide/show potions</span>]);
 
   return (
     <OverviewBox
@@ -74,6 +74,7 @@ const BrewingOverview = ({}: Props) => {
     >
       <div
         style={{
+          position: "relative",
           display: "flex",
           width: `100%`,
           flexDirection: "row",
@@ -81,6 +82,7 @@ const BrewingOverview = ({}: Props) => {
       >
         <div
           style={{
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             height: "100%",
@@ -90,37 +92,58 @@ const BrewingOverview = ({}: Props) => {
             alignItems: "center",
           }}
         >
-          <IPimg
-            role="button"
-            name={"brewing"}
-            onClick={() => setView(BrewingView.DRINK)}
-            size={30}
-            style={viewSelectorStyle(BrewingView.DRINK)}
-            {...drinkProps}
-          />
-          <IPimg
-            role="button"
-            name={"brewing_kit"}
-            onClick={() => setView(BrewingView.BREW)}
-            size={30}
-            style={viewSelectorStyle(BrewingView.BREW)}
-            {...brewProps}
-          />
-          <IPimg
-            role="button"
-            name={"view"}
-            onClick={() => setView(BrewingView.FAVORITE)}
-            size={30}
-            style={viewSelectorStyle(BrewingView.FAVORITE)}
-            {...viewProps}
-          />
+          <div
+            style={{
+              position: "relative",
+            }}
+          >
+            <IPimg
+              role="button"
+              name={"brewing"}
+              onClick={() => setView(BrewingView.DRINK)}
+              size={30}
+              style={viewSelectorStyle(BrewingView.DRINK)}
+              {...drinkProps}
+            />
+            <DrinkToolTip />
+          </div>
+
+          <div
+            style={{
+              position: "relative",
+            }}
+          >
+            <IPimg
+              role="button"
+              name={"brewing_kit"}
+              onClick={() => setView(BrewingView.BREW)}
+              size={30}
+              style={viewSelectorStyle(BrewingView.BREW)}
+              {...brewProps}
+            />
+            <BrewToolTip />
+          </div>
+          <div
+            style={{
+              position: "relative",
+            }}
+          >
+            <IPimg
+              role="button"
+              name={"view"}
+              onClick={() => setView(BrewingView.FAVORITE)}
+              size={30}
+              style={viewSelectorStyle(BrewingView.FAVORITE)}
+              {...viewProps}
+            />
+            <ViewToolTip />
+          </div>
         </div>
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
             alignContent: "flex-start",
-            overflowY: "auto",
           }}
         >
           {(view === BrewingView.FAVORITE ? potions : favorites).map(
@@ -137,11 +160,8 @@ const BrewingOverview = ({}: Props) => {
             )
           )}
         </div>
-      </div>
-      <DrinkToolTip />
-      <BrewToolTip />
-      <ViewToolTip />
-    </OverviewBox>
+      </div >
+    </OverviewBox >
   );
 };
 
