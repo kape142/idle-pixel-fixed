@@ -1,14 +1,15 @@
 import IPimg from "../../util/IPimg";
 import { useItemObserver, useNumberItemObserver } from "../setItems/useSetItemsObserver";
+import { useTooltip } from "../../util/tooltip/useTooltip";
 import MachineDisplay from "./MachineDisplay";
 import GeodeDisplay from "./GeodeDisplay";
 import MineralDisplay from "./MineralDisplay";
 import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
 import { keysOf } from "../../util/typeUtils";
-
 import LabeledIPimg from "../../util/LabeledIPimg";
-import { useState, MouseEvent } from "react";
+import { MouseEvent } from "react";
+import RocketDisplay from "./RocketDisplay";
 
 const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
 const MINERALS: string[] = keysOf(Ores.MINERALS_XP_MAP);
@@ -23,21 +24,15 @@ const MiningOverview = () => {
 
   const changeOilOut = (change: number) => setOilOut(oilOut + change);
 
-  const [rocket] = useNumberItemObserver("rocket", id);
-  const [rocketStatus] = useItemObserver("rocket_status", id);
-  const [rocketKm] = useNumberItemObserver("rocket_km", id);
-  const [rocketDistanceRequired] = useNumberItemObserver("rocket_distance_required", id);
-  const [rocketFuel] = useNumberItemObserver("rocket_fuel", id);
-
-  const onRocketClick = (event: MouseEvent) => {
-    Modals.clicks_rocket();
-  };
-
   const [moonstone] = useNumberItemObserver("moonstone", id);
 
   const onMoonstoneClick = (event: MouseEvent) => {
     Modals.open_custom_crafting('moonstone')
   };
+
+  const [moonstoneProps, MoonstoneToolTip] = useTooltip(
+    [<span style={{ textAlign: "center" }}>Use {moonstone} Moonstone(s)</span>]
+  );
 
   return (
     <OverviewBox height={"auto"} width={400}>
@@ -60,38 +55,7 @@ const MiningOverview = () => {
           }}
         />
 
-        {rocket > 0 &&
-          <>
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100%",
-              }}
-            >
-              <IPimg
-                name={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "rocket" : "rocket_idle"}
-                ext={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "gif" : "png"}
-                size={30}
-                onClick={onRocketClick}
-                className={rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : ""}
-                title={Items.get_pretty_item_name("rocket")}
-                role={"button"}
-              />
-              <span>{(rocketStatus && rocketStatus === "none") ? "Idle" : Items.get_pretty_item_name(rocketStatus)}</span>
-            </div>
-
-            <LabeledIPimg
-              name={"rocket_fuel"}
-              label={rocketFuel}
-              size={30}
-              style={{ justifyContent: "center" }}
-            />
-          </>
-        }
+        <RocketDisplay />
       </div>
 
       <div
@@ -139,8 +103,10 @@ const MiningOverview = () => {
               onClick={onMoonstoneClick}
               title={Items.get_pretty_item_name("Moonstone")}
               role={"button"}
+              {...moonstoneProps}
             />
             <span>{moonstone}</span>
+            <MoonstoneToolTip />
           </div>
         }
       </div>
