@@ -90,6 +90,7 @@ const MiningOverview = () => {
         {moonstone > 0 &&
           <div
             style={{
+              position: "relative",
               display: "flex",
               flexDirection: "column",
               gap: "10px",
@@ -101,7 +102,7 @@ const MiningOverview = () => {
               name={"moonstone"}
               size={30}
               onClick={onMoonstoneClick}
-              title={Items.get_pretty_item_name("Moonstone")}
+              title={"Moonstone"}
               role={"button"}
               {...moonstoneProps}
             />
