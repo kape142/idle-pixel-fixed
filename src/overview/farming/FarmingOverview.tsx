@@ -54,7 +54,7 @@ const FarmingOverview = () => {
   };
 
   return (
-    <OverviewBox height={250} width={550} justifyContent={"space-between"}>
+    <OverviewBox height={"auto"} width={550} justifyContent={"space-between"}>
       <div style={{ display: "flex" }}>
         <LabeledIPimg
           name={"bonemeal_bin"}
@@ -86,7 +86,7 @@ const FarmingOverview = () => {
             display: "flex",
             justifyContent: "flex-start",
             flexWrap: "wrap",
-            height: "120px",
+            minHeight: "120px",
             width: "400px",
           }}
         >

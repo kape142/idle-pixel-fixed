@@ -1319,7 +1319,7 @@ var __objRest = (source, exclude) => {
       style: { textAlign: "center" }
     }, "Hide/show potions")]);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
+      height: "auto",
       width: 300,
       flexDirection: "row",
       alignItems: "stretch"
@@ -1610,10 +1610,10 @@ var __objRest = (source, exclude) => {
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: "heat",
       size: 20,
-      title: Items.get_pretty_item_name("heat")
+      title: "Heat"
     }), /* @__PURE__ */ React.createElement("span", null, heat)), logs.map((log) => /* @__PURE__ */ React.createElement(LogDisplay, {
       log,
-      logHeat: Cooking.LOG_HEAT_MAP[log]
+      logHeat: Cooking.getHeatPerLog(log)
     }))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -2010,16 +2010,13 @@ var __objRest = (source, exclude) => {
         sendMessage("CRACK_GEODE", geode + "_geode", amount);
       }
     };
-    const tooltipProps = {
-      geode
-    };
     const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip([
-      /* @__PURE__ */ React.createElement(Tooltip, __spreadValues({
+      /* @__PURE__ */ React.createElement(Tooltip, {
         text: `Crack ${amount} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`
-      }, tooltipProps)),
-      /* @__PURE__ */ React.createElement(Tooltip, __spreadValues({
+      }),
+      /* @__PURE__ */ React.createElement(Tooltip, {
         text: `Crack ${amount - 1} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`
-      }, tooltipProps))
+      })
     ]);
     return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
       style: {
@@ -2202,6 +2199,7 @@ var __objRest = (source, exclude) => {
       mineral
     })), moonstone > 0 && /* @__PURE__ */ React.createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -2212,7 +2210,7 @@ var __objRest = (source, exclude) => {
       name: "moonstone",
       size: 30,
       onClick: onMoonstoneClick,
-      title: Items.get_pretty_item_name("Moonstone"),
+      title: "Moonstone",
       role: "button"
     }, moonstoneProps)), /* @__PURE__ */ React.createElement("span", null, moonstone), /* @__PURE__ */ React.createElement(MoonstoneToolTip, null))));
   };
@@ -2651,7 +2649,7 @@ var __objRest = (source, exclude) => {
       }
     };
     return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
+      height: "auto",
       width: 550,
       justifyContent: "space-between"
     }, /* @__PURE__ */ React.createElement("div", {
@@ -2680,7 +2678,7 @@ var __objRest = (source, exclude) => {
         display: "flex",
         justifyContent: "flex-start",
         flexWrap: "wrap",
-        height: "120px",
+        minHeight: "120px",
         width: "400px"
       }
     }, seeds.map((seed) => /* @__PURE__ */ React.createElement(SeedDisplay, __spreadProps(__spreadValues({

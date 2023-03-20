@@ -67,7 +67,7 @@ const BrewingOverview = ({ }: Props) => {
 
   return (
     <OverviewBox
-      height={250}
+      height={"auto"}
       width={300}
       flexDirection={"row"}
       alignItems={"stretch"}
