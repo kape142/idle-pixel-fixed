@@ -56,7 +56,7 @@ const WoodcuttingOverview = () => {
           <IPimg
             name={"heat"}
             size={20}
-            title={Items.get_pretty_item_name("heat")}
+            title={"Heat"}
           />
           <span>{heat}</span>
         </div>
@@ -64,7 +64,7 @@ const WoodcuttingOverview = () => {
         {logs.map((log) => (
           <LogDisplay
             log={log} 
-            logHeat={Cooking.LOG_HEAT_MAP[log]}
+            logHeat={Cooking.getHeatPerLog(log)}
           />
         ))}
       </div>
