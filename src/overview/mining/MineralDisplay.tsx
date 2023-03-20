@@ -3,7 +3,7 @@ import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { MouseEvent } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { useTooltip } from "../../util/tooltip/useTooltip";
-import Tooltip from "./Tooltip";
+import Tooltip from "../../util/tooltip/Tooltip";
 
 interface Props {
   mineral: string;
