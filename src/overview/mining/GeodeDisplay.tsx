@@ -3,7 +3,7 @@ import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { MouseEvent } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { useTooltip } from "../../util/tooltip/useTooltip";
-import Tooltip from "./Tooltip";
+import Tooltip from "../../util/tooltip/Tooltip";
 
 interface Props {
   geode: string;
@@ -26,19 +26,13 @@ const GeodeDisplay = ({ geode }: Props) => {
     }
   };
 
-  const tooltipProps = {
-    geode: geode,
-  };
-
   const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip(
     [
       <Tooltip
         text={`Crack ${amount} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`}
-        {...tooltipProps}
       />,
       <Tooltip
         text={`Crack ${amount - 1} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`}
-        {...tooltipProps}
       />
     ]
   );
