@@ -39,17 +39,23 @@ const BoneDisplay = ({ bone, bonemealValue, bonemeal, setBonemeal }: Props) => {
   };
 
   const [boneProps, BoneTooltips, hideTooltip] = useTooltip(
-    <BoneTooltip amount={amount} {...tooltipProps} />,
-    <BoneTooltip
-      amount={Math.max(Math.floor(amount / 2), 1)}
-      {...tooltipProps}
-    />,
-    <BoneTooltip amount={Math.min(amount, 5)} {...tooltipProps} />
+    [
+      <BoneTooltip amount={amount} {...tooltipProps} />,
+      <BoneTooltip
+        amount={Math.max(Math.floor(amount / 2), 1)}
+        {...tooltipProps}
+      />,
+      <BoneTooltip amount={Math.min(amount, 5)} {...tooltipProps} />
+    ],
+    {
+      width: 250,
+    }
   );
 
   return amount > 0 ? (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "5px",

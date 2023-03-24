@@ -7,7 +7,7 @@ interface Props {
 
 const GatheringBagTooltip = ({ area, amount }: Props) => {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "350px"}}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center"}}>
       <div>
         Open {amount} {Items.get_pretty_item_name(area)} Bags
       </div>

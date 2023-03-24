@@ -27,7 +27,6 @@ const BrewingTooltip = ({
       style={{
         display: "flex",
         flexDirection: "column",
-        minWidth: "400px",
         alignItems: "center",
       }}
     >
@@ -42,7 +41,7 @@ const BrewingTooltip = ({
         style={{
           display: "flex",
           justifyContent: "space-evenly",
-          minWidth: "400px",
+          gap: "10px",
         }}
       >
         {ingredients.map((ingredient) => (

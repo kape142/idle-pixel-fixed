@@ -86,8 +86,9 @@ const OverviewPanel = () => {
         <div
           style={{
             display: "flex",
-            gap: "15px",
+            rowGap: "15px",
             justifyContent: "space-around",
+            flexWrap: "wrap",
           }}
         >
           <div

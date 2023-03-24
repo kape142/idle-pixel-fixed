@@ -22,29 +22,32 @@ const MachineDisplay = ({
   const oilUse = Ores.getOilCost(machine);
 
   const [machineProps, MachineTooltip] = useTooltip(
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minWidth: "200px",
-        gap: "15px",
-        alignItems: "center",
-      }}
-    >
-      <span>{Items.get_pretty_item_name(machine)}</span>
+    [
       <div
         style={{
           display: "flex",
-          justifyContent: "space-evenly",
-          gap: "10px",
-          minWidth: "200px",
+          flexDirection: "column",
+          gap: "15px",
+          alignItems: "center",
         }}
       >
-        {items.map((item) => (
-          <IPimg name={item} size={30} />
-        ))}
+        <span>{Items.get_pretty_item_name(machine)}</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-evenly",
+            gap: "10px",
+          }}
+        >
+          {items.map((item) => (
+            <IPimg name={item} size={30} />
+          ))}
+        </div>
       </div>
-    </div>
+    ],
+    {
+      width: 230,
+    }
   );
 
   const [amount] = useNumberItemObserver(machine, "MachineDisplay");
@@ -72,6 +75,7 @@ const MachineDisplay = ({
   return amount > 0 ? (
     <div
       style={{
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -79,58 +83,66 @@ const MachineDisplay = ({
         alignItems: "center",
       }}
     >
-      <IPimg name={machine} size={50} {...machineProps} />
+      <IPimg name={machine} size={50} className={amountOn > 0 ? "shake" : ""} {...machineProps} />
       <div
         style={{
           display: "flex",
-          gap: "5px",
+          flexDirection: "column",
+          gap: "0px",
+          width: "min-content",
           alignItems: "center",
-        }}
-      >
-        <IPimg name={"oil"} size={20} />
-        <span>{`${oilUse * amountOn} (${oilUse})`}</span>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          gap: "5px",
-          width: "max-content",
         }}
       >
         <div
           style={{
             display: "flex",
+            gap: "5px",
             alignItems: "center",
           }}
         >
-          <span
-            role="button"
+          <IPimg name={"oil"} size={20} />
+          <span>{`${oilUse * amountOn} (${oilUse})`}</span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "5px",
+            width: "max-content",
+          }}
+        >
+          <div
             style={{
-              fontWeight: "500",
-              fontSize: "24px",
-              userSelect: "none",
-              visibility: amountOn > 0 ? "visible" : "hidden",
+              display: "flex",
+              alignItems: "center",
             }}
-            onClick={onDecrease}
           >
-            {"<"}
-          </span>
-          <span style={{ margin: "0 10px" }}>{`${amountOn} / ${amount}`}</span>
-          <span
-            role="button"
-            style={{
-              fontWeight: "500",
-              fontSize: "24px",
-              userSelect: "none",
-              visibility:
-                miningLevel >= level && amountOn < amount
-                  ? "visible"
-                  : "hidden",
-            }}
-            onClick={onIncrease}
-          >
-            {">"}
-          </span>
+            <span
+              role="button"
+              style={{
+                fontWeight: "500",
+                userSelect: "none",
+                visibility: amountOn > 0 ? "visible" : "hidden",
+              }}
+              onClick={onDecrease}
+            >
+              {"<"}
+            </span>
+            <span style={{ margin: "0 10px" }}>{`${amountOn} / ${amount}`}</span>
+            <span
+              role="button"
+              style={{
+                fontWeight: "500",
+                userSelect: "none",
+                visibility:
+                  miningLevel >= level && amountOn < amount
+                    ? "visible"
+                    : "hidden",
+              }}
+              onClick={onIncrease}
+            >
+              {">"}
+            </span>
+          </div>
         </div>
       </div>
       <MachineTooltip />

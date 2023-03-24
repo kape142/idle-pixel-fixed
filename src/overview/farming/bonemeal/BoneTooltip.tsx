@@ -9,7 +9,7 @@ interface Props {
 
 const BoneTooltip = ({ bone, amount, bonemealValue }: Props) => {
   return (
-    <div style={{ display: "flex", flexDirection: "column", minWidth: "250px", alignItems: "center" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div>
         Add {amount} {Items.get_pretty_item_name(bone)}
       </div>

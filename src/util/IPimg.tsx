@@ -9,13 +9,14 @@ interface Props {
 const IPimg = ({
   name,
   size,
+  ext,
   className,
   style,
   ...rest
 }: PropsWithHTMLElementAttributes<Props>) => {
   return (
     <img
-      src={get_image(`images/${name}.png`)}
+      src={ext ? get_image(`images/${name}.${ext}`) : get_image(`images/${name}.png`)}
       alt={name}
       className={classNames({ [`w${size}`]: !!size }, className)}
       style={{ objectFit: "cover", ...style }}

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.2
+// @version      1.0.3
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -121,7 +121,7 @@ var __objRest = (source, exclude) => {
   const LootEntry = ({ content, timestamp }) => {
     return /* @__PURE__ */ React.createElement("div", {
       style: {
-        borderBottom: "1px solid grey",
+        borderBottom: "1px solid #fff",
         margin: "1em",
         padding: "1em",
         width: "100%"
@@ -141,7 +141,6 @@ var __objRest = (source, exclude) => {
     }, "padding"), /* @__PURE__ */ React.createElement("div", null, "Loot"), /* @__PURE__ */ React.createElement("div", {
       title: formatDate(timestamp),
       style: {
-        color: "gray",
         width: "5em"
       }
     }, timeSince(timestamp))), /* @__PURE__ */ React.createElement("div", {
@@ -169,7 +168,9 @@ var __objRest = (source, exclude) => {
       alt: `${item.label}-image`
     }), /* @__PURE__ */ React.createElement("span", {
       style: {
-        fontSize: "1.6em"
+        fontSize: "1.6em",
+        color: "#000",
+        textShadow: "none"
       }
     }, item.label)))));
   };
@@ -194,16 +195,18 @@ var __objRest = (source, exclude) => {
     var _b = _a, {
       name,
       size,
+      ext,
       className,
       style
     } = _b, rest = __objRest(_b, [
       "name",
       "size",
+      "ext",
       "className",
       "style"
     ]);
     return /* @__PURE__ */ React.createElement("img", __spreadValues({
-      src: get_image(`images/${name}.png`),
+      src: ext ? get_image(`images/${name}.${ext}`) : get_image(`images/${name}.png`),
       alt: name,
       className: classNames({ [`w${size}`]: !!size }, className),
       style: __spreadValues({ objectFit: "cover" }, style)
@@ -415,10 +418,10 @@ var __objRest = (source, exclude) => {
     });
     return acc;
   }, []).map((t) => t);
-  const id$c = "useActivityLogWebSocketListener";
+  const id$e = "useActivityLogWebSocketListener";
   const useActivityLogWebSocketListener = () => {
-    const [settings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$c);
-    const [list, setList] = useLocalStorage("activity-log", [], id$c);
+    const [settings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$e);
+    const [list, setList] = useLocalStorage("activity-log", [], id$e);
     const addItem = (item) => setList((list2) => [item].concat(list2).slice(0, 200));
     const onMessageFactory = React$1.useMemo(() => settings.blockDialogues ? consumeWebSocketMessage : observeWebSocketMessage, [settings.blockDialogues]);
     const onLootMessage = React$1.useMemo(() => onMessageFactory("OPEN_LOOT_DIALOGUE", (data) => {
@@ -505,9 +508,9 @@ var __objRest = (source, exclude) => {
     blockDialogues: "Block loot pop-ups",
     showInOverview: "Show activity log in Overview"
   };
-  const id$b = "ActivityLogSettingsWindow";
+  const id$d = "ActivityLogSettingsWindow";
   const ActivityLogSettingsWindow = ({ open, setOpen }) => {
-    const [settings, setSettings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$b);
+    const [settings, setSettings] = useLocalStorage("activity-log-settings", initialActivitLogSettings, id$d);
     const toggleSetting = (name) => {
       setSettings((oldValue) => __spreadProps(__spreadValues({}, oldValue), { [name]: !oldValue[name] }));
     };
@@ -564,7 +567,7 @@ var __objRest = (source, exclude) => {
       }
     }, "X")))));
   };
-  const id$a = "ActivityLog";
+  const id$c = "ActivityLog";
   const ActivityLog = ({}) => {
     const list = useActivityLogWebSocketListener();
     const open = useIPFSelector(selectActivityLogIsOpen);
@@ -582,10 +585,10 @@ var __objRest = (source, exclude) => {
             dispatch(openActivityLog());
           }
         },
-        id: id$a
+        id: id$c
       }));
       return () => {
-        dispatch(unsubscribeFromKeyboardEvent({ key: "Tab", id: id$a }));
+        dispatch(unsubscribeFromKeyboardEvent({ key: "Tab", id: id$c }));
       };
     }, [open, dispatch, setSettingsOpen]);
     return /* @__PURE__ */ React.createElement(React.Fragment, null, open && /* @__PURE__ */ React.createElement("div", {
@@ -951,7 +954,7 @@ var __objRest = (source, exclude) => {
       level: 60
     }, getData("titanium_potion"))
   };
-  const useTooltip = (regular, shift, ctrl) => {
+  const useTooltip = ([regular, shift, ctrl], { width } = {}) => {
     const { ctrlKey, shiftKey } = useIPFSelector(selectModifierKeys);
     const [visible, setVisible] = React$1.useState(false);
     const [target, setTarget] = React$1.useState(null);
@@ -965,14 +968,16 @@ var __objRest = (source, exclude) => {
     };
     return [
       { onMouseOver, onMouseOut },
-      () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement("div", {
+      () => /* @__PURE__ */ React.createElement(React.Fragment, null, visible && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", {
         style: {
+          width: width ? width + "px" : "200px",
           position: "absolute",
-          top: target && `${target.offsetTop}px`,
-          left: target && `${target.offsetLeft + target.offsetWidth}px`,
-          border: "1px solid black",
+          bottom: "112%",
+          left: "50%",
+          marginLeft: width ? "-" + width / 2 + "px" : "-100px",
+          border: "1px solid rgba(0, 0, 0, 0.95)",
           borderRadius: "10px",
-          backgroundColor: "rgba(0, 0, 0, 0.9)",
+          backgroundColor: "rgba(0, 0, 0, 0.95)",
           padding: "10px",
           color: "white",
           zIndex: 100,
@@ -996,7 +1001,19 @@ var __objRest = (source, exclude) => {
         style: {
           color: !shiftKey && ctrlKey ? "#1a9d1a" : "#dddddd"
         }
-      }, "[ctrl]")) : null)),
+      }, "[ctrl]")) : null, /* @__PURE__ */ React.createElement("span", {
+        style: {
+          position: "absolute",
+          top: "100%",
+          left: "50%",
+          marginLeft: "-7px",
+          borderWidth: "7px",
+          borderStyle: "solid",
+          borderColor: "rgba(0, 0, 0, 0.95) transparent transparent transparent",
+          zIndex: 100,
+          pointerEvents: "none"
+        }
+      }, " ")))),
       () => {
         setVisible(false);
         setTarget(null);
@@ -1010,19 +1027,22 @@ var __objRest = (source, exclude) => {
       name,
       label,
       size,
-      style
+      style,
+      width
     } = _d, rest = __objRest(_d, [
       "name",
       "label",
       "size",
-      "style"
+      "style",
+      "width"
     ]);
+    const appliedWidth = width ? width : (size != null ? size : 0) + 20;
     return /* @__PURE__ */ React__default["default"].createElement("div", __spreadValues({
       style: __spreadValues({
         display: "flex",
         gap: "10px",
         flexDirection: "column",
-        width: `${(size != null ? size : 0) + 20}px`,
+        width: `${appliedWidth}px`,
         justifyContent: "flex-end",
         alignItems: "center",
         height: "100%"
@@ -1045,14 +1065,13 @@ var __objRest = (source, exclude) => {
       style: {
         display: "flex",
         flexDirection: "column",
-        minWidth: "400px",
         alignItems: "center"
       }
     }, amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", null, "Brew ", amount, " ", Items.get_pretty_item_name(potion), " (max ", maxAmount, ")") : /* @__PURE__ */ React__default["default"].createElement("div", null, "Can't Brew ", Items.get_pretty_item_name(potion)), /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         justifyContent: "space-evenly",
-        minWidth: "400px"
+        gap: "10px"
       }
     }, ingredients.map((ingredient) => /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
       name: ingredient.item,
@@ -1105,7 +1124,9 @@ var __objRest = (source, exclude) => {
         sendMessage("BREW", potionName, making);
       }
     };
-    const [drinkProps, DrinkToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, "Drink ", Items.get_pretty_item_name(potionName)));
+    const [drinkProps, DrinkToolTip] = useTooltip([/* @__PURE__ */ React__default["default"].createElement("span", {
+      style: { textAlign: "center" }
+    }, "Drink ", Items.get_pretty_item_name(potionName))]);
     const tooltipProps = {
       potion: potionName,
       maxAmount: getMakeable(),
@@ -1114,18 +1135,29 @@ var __objRest = (source, exclude) => {
       brewingLevel,
       level
     };
-    const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
-      amount: Math.min(1, getMakeable())
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
-      amount: getMakeable()
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
-      amount: Math.min(5, getMakeable())
-    }, tooltipProps)));
-    const [viewProps, ViewToolTip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, favorite ? "Hide" : "Show", " ", Items.get_pretty_item_name(potionName)));
+    const [brewProps, BrewToolTip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
+        amount: Math.min(1, getMakeable())
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
+        amount: getMakeable()
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(BrewingTooltip, __spreadValues({
+        amount: Math.min(5, getMakeable())
+      }, tooltipProps))
+    ], {
+      width: 400
+    });
+    const [viewProps, ViewToolTip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement("span", {
+        style: { textAlign: "center" }
+      }, favorite ? "Hide" : "Show", " ", Items.get_pretty_item_name(potionName))
+    ]);
     const imgProps = view === BrewingView.DRINK ? drinkProps : view === BrewingView.BREW ? brewProps : viewProps;
     const onClick = view === BrewingView.DRINK ? onDrinkClick : view === BrewingView.BREW ? onBrewClick : toggle;
     return /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         width: "50px",
         display: "flex",
         flexDirection: "column",
@@ -1163,22 +1195,27 @@ var __objRest = (source, exclude) => {
         margin: "0 0 40px 25px",
         height: "30px"
       }
-    }, "+")), isDrinkable && /* @__PURE__ */ React__default["default"].createElement(DrinkToolTip, null), /* @__PURE__ */ React__default["default"].createElement(BrewToolTip, null), /* @__PURE__ */ React__default["default"].createElement(ViewToolTip, null));
+    }, "+"), isDrinkable && /* @__PURE__ */ React__default["default"].createElement(DrinkToolTip, null), /* @__PURE__ */ React__default["default"].createElement(BrewToolTip, null), /* @__PURE__ */ React__default["default"].createElement(ViewToolTip, null)));
   };
+  const id$b = "OverviewBox";
   const OverviewBox = (_e) => {
     var _f = _e, { width, height, children } = _f, style = __objRest(_f, ["width", "height", "children"]);
+    const [uiMenuBackgroundColor] = useItemObserver("ui_menu_background_color", id$b);
     return /* @__PURE__ */ React.createElement("div", {
       style: __spreadValues({
         display: "flex",
-        height: `${height}px`,
+        height: isNumber(height) ? `${height}px` : height,
+        minHeight: `250px`,
         width: `${width}px`,
         gap: "5px",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: "30px",
-        backgroundColor: "#b1d6dc",
-        border: "10px solid #b1d6dc",
+        borderRadius: "10px",
+        color: "#fff",
+        textShadow: "1px 1px #000, 0px 0px 3px #000",
+        backgroundColor: uiMenuBackgroundColor && uiMenuBackgroundColor.charAt(0) === "#" ? uiMenuBackgroundColor + "aa" : "#004c4eaa",
+        padding: "10px",
         boxSizing: "content-box"
       }, style)
     }, children);
@@ -1249,13 +1286,13 @@ var __objRest = (source, exclude) => {
     BrewingView2["FAVORITE"] = "FAVORITE";
     return BrewingView2;
   })(BrewingView || {});
-  const id$9 = "BrewingOverview";
+  const id$a = "BrewingOverview";
   const BrewingOverview = ({}) => {
     const [view, setView] = React$1.useState("DRINK");
     const potions = Object.keys(POTIONS);
-    const brewingIngredients = useBrewingIngredientsObserver(id$9);
-    const [favorites, setFavorites] = useLocalStorage("brewing-favorites", potions.slice(0, 15), id$9);
-    const [brewingXp] = useNumberItemObserver("brewing_xp", id$9);
+    const brewingIngredients = useBrewingIngredientsObserver(id$a);
+    const [favorites, setFavorites] = useLocalStorage("brewing-favorites", potions.slice(0, 15), id$a);
+    const [brewingXp] = useNumberItemObserver("brewing_xp", id$a);
     const toggle = (potionName) => () => {
       setFavorites((favs) => {
         favs = toggleInArray(favs, potionName);
@@ -1271,23 +1308,31 @@ var __objRest = (source, exclude) => {
       }
       return data;
     }), []);
-    useWebsocket(blockPopup, 1, id$9);
-    const [drinkProps, DrinkToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Drink potions"));
-    const [brewProps, BrewToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Brew potions"));
-    const [viewProps, ViewToolTip] = useTooltip(/* @__PURE__ */ React.createElement("span", null, "Hide/show potions"));
+    useWebsocket(blockPopup, 1, id$a);
+    const [drinkProps, DrinkToolTip] = useTooltip([/* @__PURE__ */ React.createElement("span", {
+      style: { textAlign: "center" }
+    }, "Drink potions")]);
+    const [brewProps, BrewToolTip] = useTooltip([/* @__PURE__ */ React.createElement("span", {
+      style: { textAlign: "center" }
+    }, "Brew potions")]);
+    const [viewProps, ViewToolTip] = useTooltip([/* @__PURE__ */ React.createElement("span", {
+      style: { textAlign: "center" }
+    }, "Hide/show potions")]);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
+      height: "auto",
       width: 300,
       flexDirection: "row",
       alignItems: "stretch"
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         width: `100%`,
         flexDirection: "row"
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -1296,30 +1341,41 @@ var __objRest = (source, exclude) => {
         justifyContent: "space-evenly",
         alignItems: "center"
       }
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative"
+      }
     }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       role: "button",
       name: "brewing",
       onClick: () => setView("DRINK"),
       size: 30,
       style: viewSelectorStyle("DRINK")
-    }, drinkProps)), /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+    }, drinkProps)), /* @__PURE__ */ React.createElement(DrinkToolTip, null)), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       role: "button",
       name: "brewing_kit",
       onClick: () => setView("BREW"),
       size: 30,
       style: viewSelectorStyle("BREW")
-    }, brewProps)), /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+    }, brewProps)), /* @__PURE__ */ React.createElement(BrewToolTip, null)), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       role: "button",
       name: "view",
       onClick: () => setView("FAVORITE"),
       size: 30,
       style: viewSelectorStyle("FAVORITE")
-    }, viewProps))), /* @__PURE__ */ React.createElement("div", {
+    }, viewProps)), /* @__PURE__ */ React.createElement(ViewToolTip, null))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         flexWrap: "wrap",
-        alignContent: "flex-start",
-        overflowY: "auto"
+        alignContent: "flex-start"
       }
     }, (view === "FAVORITE" ? potions : favorites).map((potion) => /* @__PURE__ */ React.createElement(PotionDisplay, {
       brewingLevel: get_level(brewingXp),
@@ -1329,12 +1385,19 @@ var __objRest = (source, exclude) => {
       view,
       favorite: favorites.includes(potion),
       brewingIngredients
-    })))), /* @__PURE__ */ React.createElement(DrinkToolTip, null), /* @__PURE__ */ React.createElement(BrewToolTip, null), /* @__PURE__ */ React.createElement(ViewToolTip, null));
+    })))));
   };
   const WoodcuttingPatch = ({ type, stage, timer, shiny, plotClick }) => {
-    const [patchProps, PatchTooltip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", Items.get_pretty_item_name(type)));
+    const [patchProps, PatchTooltip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement("span", {
+        style: { textAlign: "center" }
+      }, shiny ? "Shiny " : "", Items.get_pretty_item_name(type))
+    ], {
+      width: 150
+    });
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -1441,28 +1504,77 @@ var __objRest = (source, exclude) => {
       }
     ];
   };
-  const id$8 = "LogDisplay";
-  const LogDisplay = ({ log }) => {
-    const [amount] = useNumberItemObserver(log, id$8);
+  const LogTooltip = ({ text, postText, log, amount, logHeat }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", alignItems: "center" }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", null, text, " ", amount, " ", Items.get_pretty_item_name(log)), /* @__PURE__ */ React__default["default"].createElement("div", null, postText), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", justifyContent: "space-evenly" }
+    }, /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: "heat",
+      size: 20,
+      label: logHeat * amount
+    })));
+  };
+  const id$9 = "LogDisplay";
+  const LogDisplay = ({ log, logHeat }) => {
+    const [amount, setAmount] = useNumberItemObserver(log, id$9);
+    const onLogClick = (event) => {
+      hideTooltip();
+      if (event.shiftKey) {
+        setAmount(0);
+        sendMessage("ADD_HEAT", log, amount);
+      } else if (event.ctrlKey) {
+        let making = Math.floor(amount / 2);
+        setAmount(amount - making);
+        sendMessage("ADD_HEAT", log, making);
+      } else {
+        Modals.open_input_dialogue_with_value(log, "Add Heat", "<span class='font-large'>Add heat to your oven.</span><br /><br /><span class='color-grey'>Gain <img src='https://d1xsc8x7nc5q8t.cloudfront.net/images/heat.png' /> " + Cooking.getHeatPerLog(log) + " heat per log.</span><br /><br />", amount, "ADD_HEAT");
+      }
+    };
+    const logTooltipProps = {
+      log,
+      logHeat
+    };
+    const [logProps, LogTooltips, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React.createElement(LogTooltip, __spreadValues({
+        text: "Use",
+        postText: "(with confirmation)",
+        amount
+      }, logTooltipProps)),
+      /* @__PURE__ */ React.createElement(LogTooltip, __spreadValues({
+        text: "Add",
+        postText: "(no confirmation)",
+        amount
+      }, logTooltipProps)),
+      /* @__PURE__ */ React.createElement(LogTooltip, __spreadValues({
+        text: "Add",
+        amount: Math.floor(amount / 2),
+        postText: "(no confirmation)"
+      }, logTooltipProps))
+    ], {
+      width: 250
+    });
     return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "5px",
         width: "50px",
         alignItems: "center"
       }
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
       name: log,
       size: 30,
-      title: Items.get_pretty_item_name(log)
-    }), /* @__PURE__ */ React.createElement("span", null, amount)) : null;
+      onClick: onLogClick,
+      role: "button"
+    }, logProps)), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement(LogTooltips, null)) : null;
   };
-  const id$7 = "WoodcuttingOverview";
+  const id$8 = "WoodcuttingOverview";
   const WoodcuttingOverview = () => {
     const patches = 3 + Math.sign(Number(Items.getItem("donor_tree_patches_timestamp"))) * 2;
     const logs = keysOf(Cooking.LOG_HEAT_MAP);
-    const patchData = useTreePatchesObserver(id$7);
+    const patchData = useTreePatchesObserver(id$8);
     const finishedPatches = patchData.reduce((acc, cur) => acc + (cur.stage === 4 ? 1 : 0), 0);
     const plotClick = (index) => {
       const { stage, setType, setStage } = patchData[index];
@@ -1475,19 +1587,33 @@ var __objRest = (source, exclude) => {
         setStage(0);
       }
     };
+    const [heat] = useNumberItemObserver("heat", id$8);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: 250,
       width: 550,
-      justifyContent: "space-between"
+      justifyContent: "space-evenly"
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         justifyContent: "center",
         flexWrap: "wrap"
       }
-    }, logs.map((log) => /* @__PURE__ */ React.createElement(LogDisplay, {
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        marginTop: "5px",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, {
+      name: "heat",
+      size: 20,
+      title: "Heat"
+    }), /* @__PURE__ */ React.createElement("span", null, heat)), logs.map((log) => /* @__PURE__ */ React.createElement(LogDisplay, {
       log,
-      key: log
+      logHeat: Cooking.getHeatPerLog(log)
     }))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1512,8 +1638,7 @@ var __objRest = (source, exclude) => {
       style: {
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        minWidth: "300px"
+        alignItems: "center"
       }
     }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Smelt ", amount, " ", Items.get_pretty_item_name(ore)), /* @__PURE__ */ React__default["default"].createElement("div", {
       style: { display: "flex", justifyContent: "space-evenly" }
@@ -1585,17 +1710,24 @@ var __objRest = (source, exclude) => {
       charcoalPerBar,
       lavaPerBar
     };
-    const [oreProps, OreToolTips, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
-      amount: getSmeltable()
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
-      amount: Math.max(Math.floor(getSmeltable() / 2), 1)
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
-      amount: Math.min(getSmeltable(), 5)
-    }, tooltipProps)));
+    const [oreProps, OreToolTips, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
+        amount: getSmeltable()
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
+        amount: Math.max(Math.floor(getSmeltable() / 2), 1)
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(OreTooltip, __spreadValues({
+        amount: Math.min(getSmeltable(), 5)
+      }, tooltipProps))
+    ], {
+      width: 300
+    });
     const unselectable = disabled || amount === 0 || oil < oilPerBar || charcoal < charcoalPerBar || lava < lavaPerBar;
     const formattedAmount = formatNumber(amount);
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -1638,15 +1770,15 @@ var __objRest = (source, exclude) => {
     "titanium_bar"
   ];
   const oreToBar = (ore) => ore === "copper" ? "bronze_bar" : `${ore}_bar`;
-  const id$6 = "CraftingOverview";
+  const id$7 = "CraftingOverview";
   const CraftingOverview = () => {
     const furnace = Furnace.getFurnace();
-    const [oreType, setOreType] = useItemObserver("furnace_ore_type", id$6);
-    const [oreAmountAt, setOreAmountAt] = useNumberItemObserver("furnace_ore_amount_at", id$6);
-    const [oreAmountSet, setOreAmountSet] = useNumberItemObserver("furnace_ore_amount_set", id$6);
-    const [oil, setOil] = useNumberItemObserver("oil", id$6);
-    const [charcoal, setCharcoal] = useNumberItemObserver("charcoal", id$6);
-    const [lava, setLava] = useNumberItemObserver("lava", id$6);
+    const [oreType, setOreType] = useItemObserver("furnace_ore_type", id$7);
+    const [oreAmountAt, setOreAmountAt] = useNumberItemObserver("furnace_ore_amount_at", id$7);
+    const [oreAmountSet, setOreAmountSet] = useNumberItemObserver("furnace_ore_amount_set", id$7);
+    const [oil, setOil] = useNumberItemObserver("oil", id$7);
+    const [charcoal, setCharcoal] = useNumberItemObserver("charcoal", id$7);
+    const [lava, setLava] = useNumberItemObserver("lava", id$7);
     const setSmelting = (smelting) => {
       setOreType(smelting.type);
       setOreAmountAt(smelting.amountAt);
@@ -1689,7 +1821,8 @@ var __objRest = (source, exclude) => {
       }
     }, /* @__PURE__ */ React.createElement(IPimg, {
       name: furnace,
-      size: 50
+      size: 50,
+      ext: oreType !== "none" ? "gif" : "png"
     }), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1758,25 +1891,27 @@ var __objRest = (source, exclude) => {
     miningLevel
   }) => {
     const oilUse = Ores.getOilCost(machine);
-    const [machineProps, MachineTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        minWidth: "200px",
-        gap: "15px",
-        alignItems: "center"
-      }
-    }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(machine)), /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: {
-        display: "flex",
-        justifyContent: "space-evenly",
-        gap: "10px",
-        minWidth: "200px"
-      }
-    }, items.map((item) => /* @__PURE__ */ React__default["default"].createElement(IPimg, {
-      name: item,
-      size: 30
-    })))));
+    const [machineProps, MachineTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+          alignItems: "center"
+        }
+      }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(machine)), /* @__PURE__ */ React__default["default"].createElement("div", {
+        style: {
+          display: "flex",
+          justifyContent: "space-evenly",
+          gap: "10px"
+        }
+      }, items.map((item) => /* @__PURE__ */ React__default["default"].createElement(IPimg, {
+        name: item,
+        size: 30
+      }))))
+    ], {
+      width: 230
+    });
     const [amount] = useNumberItemObserver(machine, "MachineDisplay");
     const [amountOn, setAmountOn] = useNumberItemObserver(`${machine}_on`, "MachineDisplay");
     const onIncrease = () => {
@@ -1795,6 +1930,7 @@ var __objRest = (source, exclude) => {
     };
     return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -1803,8 +1939,17 @@ var __objRest = (source, exclude) => {
       }
     }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: machine,
-      size: 50
+      size: 50,
+      className: amountOn > 0 ? "shake" : ""
     }, machineProps)), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "0px",
+        width: "min-content",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
         display: "flex",
         gap: "5px",
@@ -1828,7 +1973,6 @@ var __objRest = (source, exclude) => {
       role: "button",
       style: {
         fontWeight: "500",
-        fontSize: "24px",
         userSelect: "none",
         visibility: amountOn > 0 ? "visible" : "hidden"
       },
@@ -1839,12 +1983,101 @@ var __objRest = (source, exclude) => {
       role: "button",
       style: {
         fontWeight: "500",
-        fontSize: "24px",
         userSelect: "none",
         visibility: miningLevel >= level && amountOn < amount ? "visible" : "hidden"
       },
       onClick: onIncrease
-    }, ">"))), /* @__PURE__ */ React__default["default"].createElement(MachineTooltip, null)) : null;
+    }, ">")))), /* @__PURE__ */ React__default["default"].createElement(MachineTooltip, null)) : null;
+  };
+  const Tooltip = ({ text, postText }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", alignItems: "center" }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: {
+        textAlign: "center"
+      }
+    }, text), /* @__PURE__ */ React__default["default"].createElement("div", null, postText));
+  };
+  const GeodeDisplay = ({ geode }) => {
+    const [amount, setAmount] = useNumberItemObserver(geode + "_geode", `GeodeDisplay-${geode}`);
+    const onGeodeClick = (event) => {
+      hideTooltip();
+      if (event.shiftKey) {
+        setAmount(amount - 1);
+        sendMessage("CRACK_GEODE", geode + "_geode", amount - 1);
+      } else {
+        setAmount(amount);
+        sendMessage("CRACK_GEODE", geode + "_geode", amount);
+      }
+    };
+    const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Crack ${amount} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`
+      }),
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Crack ${amount - 1} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`
+      })
+    ]);
+    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+      role: "button",
+      name: geode + "_geode",
+      size: 30,
+      onClick: onGeodeClick
+    }, geodeProps)), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement(GeodeToolTip, null)) : null;
+  };
+  const MineralDisplay = ({ mineral }) => {
+    const [amount, setAmount] = useNumberItemObserver(mineral, `MineralDisplay-${mineral}`);
+    const onMineralClick = (event) => {
+      hideTooltip();
+      if (event.shiftKey) {
+        setAmount(0);
+        sendMessage("MINERAL_XP", mineral, amount);
+      } else if (event.ctrlKey) {
+        Modals.open_custom_crafting(mineral);
+      } else {
+        Modals.clicks_mineral(mineral);
+      }
+    };
+    const [mineralProps, MineralToolTip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Use ${amount} ` + Items.get_pretty_item_name(mineral) + `(s)`,
+        postText: "(with confirmation)"
+      }),
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Convert ${amount} ` + Items.get_pretty_item_name(mineral) + `(s) into ` + Ores.MINERALS_XP_MAP[mineral] * amount + ` mining xp`,
+        postText: "(no confirmation)"
+      }),
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Craft rings with ${amount} ` + Items.get_pretty_item_name(mineral) + `(s)`,
+        postText: "(with confirmation)"
+      })
+    ], {
+      width: 260
+    });
+    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+      role: "button",
+      name: mineral,
+      size: 30,
+      onClick: onMineralClick
+    }, mineralProps)), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement(MineralToolTip, null)) : null;
   };
   const MACHINES = {
     drill: {
@@ -1864,21 +2097,86 @@ var __objRest = (source, exclude) => {
       items: ["gold", "promethium", "titanium"]
     }
   };
+  const RocketTooltip = ({ fuel }) => {
+    return /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "5px" }
+    }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Start Rocket"), /* @__PURE__ */ React__default["default"].createElement("div", null, "Available fuel"), /* @__PURE__ */ React__default["default"].createElement("div", {
+      style: { display: "flex", justifyContent: "space-evenly" }
+    }, /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+      name: "rocket_fuel",
+      size: 20,
+      label: fuel
+    })));
+  };
+  const id$6 = "RocketDisplay";
+  const RocketDisplay = ({}) => {
+    const [rocket] = useNumberItemObserver("rocket", id$6);
+    const [rocketStatus] = useItemObserver("rocket_status", id$6);
+    const [rocketKm] = useNumberItemObserver("rocket_km", id$6);
+    const [rocketDistanceRequired] = useNumberItemObserver("rocket_distance_required", id$6);
+    const [rocketFuel] = useNumberItemObserver("rocket_fuel", id$6);
+    const onRocketClick = (event) => {
+      Modals.clicks_rocket();
+    };
+    const [rocketProps, RocketToolTip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React.createElement(RocketTooltip, {
+        fuel: rocketFuel
+      })
+    ]);
+    return rocket > 0 ? /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        gap: "10px",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+      name: rocketKm > 0 && rocketKm < rocketDistanceRequired ? "rocket" : "rocket_idle",
+      ext: rocketKm > 0 && rocketKm < rocketDistanceRequired ? "gif" : "png",
+      size: 30,
+      onClick: onRocketClick,
+      className: rocketKm > 0 && rocketKm < rocketDistanceRequired ? "shake" : "",
+      role: "button"
+    }, rocketProps)), /* @__PURE__ */ React.createElement("span", null, rocketStatus && rocketStatus === "none" ? "Idle" : Items.get_pretty_item_name(rocketStatus)), /* @__PURE__ */ React.createElement(RocketToolTip, null)) : null;
+  };
+  const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
+  const MINERALS = keysOf(Ores.MINERALS_XP_MAP);
   const id$5 = "MiningOverview";
   const MiningOverview = () => {
     const [oilIn] = useNumberItemObserver("oil_in", id$5);
-    const [oilOut, setOilOut] = React$1.useState(Items.getItem("oil_out"));
+    const [oilOut, setOilOut] = useNumberItemObserver("oil_out", id$5);
     const [miningXp] = useNumberItemObserver("mining_xp", id$5);
     const miningLevel = get_level(miningXp);
     const changeOilOut = (change) => setOilOut(oilOut + change);
+    const [moonstone] = useNumberItemObserver("moonstone", id$5);
+    const onMoonstoneClick = (event) => {
+      Modals.open_custom_crafting("moonstone");
+    };
+    const [moonstoneProps, MoonstoneToolTip] = useTooltip([/* @__PURE__ */ React.createElement("span", {
+      style: { textAlign: "center" }
+    }, "Use ", moonstone, " Moonstone(s)")]);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
+      height: "auto",
       width: 400
-    }, /* @__PURE__ */ React.createElement(IPimg, {
+    }, /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "space-evenly"
+      }
+    }, /* @__PURE__ */ React.createElement(LabeledIPimg, {
       name: "oil",
-      size: 50,
-      style: {}
-    }), /* @__PURE__ */ React.createElement("span", null, `+${oilIn} / -${oilOut}`), /* @__PURE__ */ React.createElement("div", {
+      label: `${oilIn > oilOut ? "+" : ""}${oilIn - oilOut}`,
+      size: 30,
+      style: {
+        justifyContent: "center",
+        color: oilIn >= oilOut ? "#fff" : "#ff0000",
+        filter: oilIn >= oilOut ? "" : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)"
+      }
+    }), /* @__PURE__ */ React.createElement(RocketDisplay, null)), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
         width: "100%",
@@ -1890,7 +2188,31 @@ var __objRest = (source, exclude) => {
     }, MACHINES[machine]), {
       miningLevel,
       key: machine
-    })))));
+    })))), /* @__PURE__ */ React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: "10px"
+      }
+    }, GEODES.map((geode) => /* @__PURE__ */ React.createElement(GeodeDisplay, {
+      geode
+    })), MINERALS.map((mineral) => /* @__PURE__ */ React.createElement(MineralDisplay, {
+      mineral
+    })), moonstone > 0 && /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+      name: "moonstone",
+      size: 30,
+      onClick: onMoonstoneClick,
+      title: "Moonstone",
+      role: "button"
+    }, moonstoneProps)), /* @__PURE__ */ React.createElement("span", null, moonstone), /* @__PURE__ */ React.createElement(MoonstoneToolTip, null))));
   };
   const getDeathImage = (seed) => seed.includes("leaf") ? "farming_dead_leaf" : seed.includes("tree") ? "farming_dead_tree" : "farming_dead_mushroom";
   const FarmingPatch = ({
@@ -1901,9 +2223,14 @@ var __objRest = (source, exclude) => {
     death,
     plotClick
   }) => {
-    const [patchProps, PatchTooltip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("span", null, shiny ? "Shiny " : "", death ? "Dead " : "", Items.get_pretty_item_name(seed)));
+    const [patchProps, PatchTooltip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement("span", {
+        style: { textAlign: "center" }
+      }, shiny ? "Shiny " : "", death ? "Dead " : "", Items.get_pretty_item_name(seed))
+    ]);
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -1967,31 +2294,35 @@ var __objRest = (source, exclude) => {
         setBonemeal(bonemeal - bonemealCost);
       }
     };
-    const [seedProps, SeedTooltip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
+    const [seedProps, SeedTooltip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center"
+        }
+      }, /* @__PURE__ */ React__default["default"].createElement("span", null, canPlant ? "Plant" : "Can't Plant", " ", Items.get_pretty_item_name(seed)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Time: ", formatMinutes(time)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Level:", " ", /* @__PURE__ */ React__default["default"].createElement("span", {
+        style: { color: farmingLevel < level ? "red" : "unset" }
+      }, level)), stopsDying > 0 && /* @__PURE__ */ React__default["default"].createElement("span", null, "Stops Dying:", " ", /* @__PURE__ */ React__default["default"].createElement("span", {
+        style: { color: farmingLevel < stopsDying ? "yellow" : "unset" }
+      }, stopsDying)), bonemealCost > 0 && /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
+        size: 30,
+        name: "bonemeal",
+        label: bonemealCost,
+        style: { color: bonemeal < bonemealCost ? "red" : "unset" }
+      }))
+    ], {
+      width: 250
+    });
+    return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
-        display: "flex",
-        flexDirection: "column",
-        minWidth: "300px",
-        alignItems: "center"
-      }
-    }, /* @__PURE__ */ React__default["default"].createElement("span", null, canPlant ? "Plant" : "Can't Plant", " ", Items.get_pretty_item_name(seed)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Time: ", formatMinutes(time)), /* @__PURE__ */ React__default["default"].createElement("span", null, "Level:", " ", /* @__PURE__ */ React__default["default"].createElement("span", {
-      style: { color: farmingLevel < level ? "red" : "unset" }
-    }, level)), stopsDying > 0 && /* @__PURE__ */ React__default["default"].createElement("span", null, "Stops Dying:", " ", /* @__PURE__ */ React__default["default"].createElement("span", {
-      style: { color: farmingLevel < stopsDying ? "yellow" : "unset" }
-    }, stopsDying)), bonemealCost > 0 && /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
-      size: 30,
-      name: "bonemeal",
-      label: bonemealCost,
-      style: { color: bonemeal < bonemealCost ? "red" : "unset" }
-    })));
-    return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement(React__default["default"].Fragment, null, /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "5px",
         width: "50px",
-        alignItems: "center",
-        opacity: canPlant ? 1 : 0.5
+        alignItems: "center"
       }
     }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
       name: seed,
@@ -1999,9 +2330,10 @@ var __objRest = (source, exclude) => {
       onClick,
       role: "button",
       style: {
-        cursor: canPlant ? "pointer" : "default"
+        cursor: canPlant ? "pointer" : "default",
+        opacity: canPlant ? 1 : 0.5
       }
-    }, seedProps)), /* @__PURE__ */ React__default["default"].createElement("span", null, amount)), nextPlot > 0 && /* @__PURE__ */ React__default["default"].createElement(SeedTooltip, null)) : null;
+    }, seedProps)), /* @__PURE__ */ React__default["default"].createElement("span", null, amount), nextPlot > 0 && /* @__PURE__ */ React__default["default"].createElement(SeedTooltip, null)) : null;
   };
   const stageOverride = (value) => value === 4;
   const timerOverride = (value) => value === 1;
@@ -2227,7 +2559,7 @@ var __objRest = (source, exclude) => {
   };
   const BoneTooltip = ({ bone, amount, bonemealValue }) => {
     return /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: { display: "flex", flexDirection: "column", minWidth: "250px", alignItems: "center" }
+      style: { display: "flex", flexDirection: "column", alignItems: "center" }
     }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Add ", amount, " ", Items.get_pretty_item_name(bone)), /* @__PURE__ */ React__default["default"].createElement("div", {
       style: { display: "flex", justifyContent: "space-evenly" }
     }, /* @__PURE__ */ React__default["default"].createElement(LabeledIPimg, {
@@ -2259,15 +2591,22 @@ var __objRest = (source, exclude) => {
       bone,
       bonemealValue
     };
-    const [boneProps, BoneTooltips, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
-      amount
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
-      amount: Math.max(Math.floor(amount / 2), 1)
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
-      amount: Math.min(amount, 5)
-    }, tooltipProps)));
+    const [boneProps, BoneTooltips, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
+        amount
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
+        amount: Math.max(Math.floor(amount / 2), 1)
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(BoneTooltip, __spreadValues({
+        amount: Math.min(amount, 5)
+      }, tooltipProps))
+    ], {
+      width: 250
+    });
     return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "5px",
@@ -2310,7 +2649,7 @@ var __objRest = (source, exclude) => {
       }
     };
     return /* @__PURE__ */ React.createElement(OverviewBox, {
-      height: 250,
+      height: "auto",
       width: 550,
       justifyContent: "space-between"
     }, /* @__PURE__ */ React.createElement("div", {
@@ -2339,8 +2678,7 @@ var __objRest = (source, exclude) => {
         display: "flex",
         justifyContent: "flex-start",
         flexWrap: "wrap",
-        overflowY: "auto",
-        height: "120px",
+        minHeight: "120px",
         width: "400px"
       }
     }, seeds.map((seed) => /* @__PURE__ */ React.createElement(SeedDisplay, __spreadProps(__spreadValues({
@@ -2367,7 +2705,7 @@ var __objRest = (source, exclude) => {
   };
   const GatheringBagTooltip = ({ area, amount }) => {
     return /* @__PURE__ */ React__default["default"].createElement("div", {
-      style: { display: "flex", flexDirection: "column", alignItems: "center", minWidth: "350px" }
+      style: { display: "flex", flexDirection: "column", alignItems: "center" }
     }, /* @__PURE__ */ React__default["default"].createElement("div", null, "Open ", amount, " ", Items.get_pretty_item_name(area), " Bags"));
   };
   const GatheringBagDisplay = ({ area }) => {
@@ -2394,15 +2732,22 @@ var __objRest = (source, exclude) => {
       area,
       maxAmount: amount
     };
-    const [bagProps, BagToolTip, hideTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
-      amount
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
-      amount: Math.max(Math.floor(amount / 2), 1)
-    }, tooltipProps)), /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
-      amount: Math.min(5, amount)
-    }, tooltipProps)));
+    const [bagProps, BagToolTip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
+        amount
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
+        amount: Math.max(Math.floor(amount / 2), 1)
+      }, tooltipProps)),
+      /* @__PURE__ */ React__default["default"].createElement(GatheringBagTooltip, __spreadValues({
+        amount: Math.min(5, amount)
+      }, tooltipProps))
+    ], {
+      width: 350
+    });
     return amount > 0 ? /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -2428,19 +2773,23 @@ var __objRest = (source, exclude) => {
     isSelectedArea,
     selectArea
   }) => {
-    const [areaProps, AreaTooltip] = useTooltip(/* @__PURE__ */ React__default["default"].createElement("div", {
-      style: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        minWidth: "300px",
-        fontSize: "16px"
-      }
-    }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(name)), /* @__PURE__ */ React__default["default"].createElement("span", {
-      style: { fontSize: "12px" }
-    }, "Items: ", items)));
+    const [areaProps, AreaTooltip] = useTooltip([
+      /* @__PURE__ */ React__default["default"].createElement("div", {
+        style: {
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          fontSize: "16px"
+        }
+      }, /* @__PURE__ */ React__default["default"].createElement("span", null, Items.get_pretty_item_name(name)), /* @__PURE__ */ React__default["default"].createElement("span", {
+        style: { fontSize: "12px" }
+      }, "Items: ", items))
+    ], {
+      width: 250
+    });
     return /* @__PURE__ */ React__default["default"].createElement("div", {
       style: {
+        position: "relative",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -2591,8 +2940,9 @@ var __objRest = (source, exclude) => {
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
-        gap: "15px",
-        justifyContent: "space-around"
+        rowGap: "15px",
+        justifyContent: "space-around",
+        flexWrap: "wrap"
       }
     }, /* @__PURE__ */ React.createElement("div", {
       style: {

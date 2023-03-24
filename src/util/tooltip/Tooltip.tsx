@@ -1,17 +1,24 @@
+import React from "react";
+
 interface Props {
-  name: string;
-  size?: 10 | 15 | 20 | 25 | 30 | 50 | 100;
+  text: string;
+  postText?: string;
 }
 
-const Tooltip = ({
-  name,
-  size,
-}: Props) => {
+const Tooltip = ({ text, postText }: Props) => {
   return (
-    <img
-      src={get_image(`images/${name}.png`)}
-      alt={name}
-    />
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div
+        style={{
+          textAlign: "center",
+        }}
+      >
+        {text}
+      </div>
+      <div>
+        {postText}
+      </div>
+    </div>
   );
 };
 

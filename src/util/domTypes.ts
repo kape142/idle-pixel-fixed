@@ -5,6 +5,8 @@ type HTMLElementAttributes = {
   onClick?: MouseEventHandler<HTMLElement> | undefined;
   style?: CSSProperties;
   className?: string;
+  ext?: string;
+  width?: number;
   role?: string;
 };
 
