@@ -15,4 +15,7 @@ export const BONES: Record<string, BoneData> = {
   ashes: {
     bonemeal: 2,
   },
+  blood_bones: {
+    bonemeal: 4,
+  },
 };

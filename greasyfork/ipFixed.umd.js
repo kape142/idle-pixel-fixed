@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.3
+// @version      1.0.4
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -2555,6 +2555,9 @@ var __objRest = (source, exclude) => {
     },
     ashes: {
       bonemeal: 2
+    },
+    blood_bones: {
+      bonemeal: 4
     }
   };
   const BoneTooltip = ({ bone, amount, bonemealValue }) => {
@@ -2664,7 +2667,6 @@ var __objRest = (source, exclude) => {
         display: "flex",
         justifyContent: "flex-start",
         flexWrap: "wrap",
-        height: "120px",
         width: "100px"
       }
     }, bones.map((bone) => /* @__PURE__ */ React.createElement(BoneDisplay, {

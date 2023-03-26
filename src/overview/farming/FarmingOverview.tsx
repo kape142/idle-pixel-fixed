@@ -67,7 +67,6 @@ const FarmingOverview = () => {
             display: "flex",
             justifyContent: "flex-start",
             flexWrap: "wrap",
-            height: "120px",
             width: "100px",
           }}
         >
