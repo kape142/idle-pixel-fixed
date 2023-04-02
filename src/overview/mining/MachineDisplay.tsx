@@ -43,7 +43,7 @@ const MachineDisplay = ({
             <IPimg name={item} size={30} />
           ))}
         </div>
-      </div>
+      </div>,
     ],
     {
       width: 230,
@@ -79,17 +79,20 @@ const MachineDisplay = ({
         display: "flex",
         flexDirection: "column",
         gap: "10px",
-        width: "min-content",
         alignItems: "center",
       }}
     >
-      <IPimg name={machine} size={50} className={amountOn > 0 ? "shake" : ""} {...machineProps} />
+      <IPimg
+        name={machine}
+        size={50}
+        className={amountOn > 0 ? "shake" : ""}
+        {...machineProps}
+      />
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           gap: "0px",
-          width: "min-content",
           alignItems: "center",
         }}
       >
@@ -127,7 +130,9 @@ const MachineDisplay = ({
             >
               {"<"}
             </span>
-            <span style={{ margin: "0 10px" }}>{`${amountOn} / ${amount}`}</span>
+            <span
+              style={{ margin: "0 10px" }}
+            >{`${amountOn} / ${amount}`}</span>
             <span
               role="button"
               style={{

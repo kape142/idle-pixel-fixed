@@ -1,5 +1,5 @@
 import IPimg from "../../util/IPimg";
-import { useItemObserver, useNumberItemObserver } from "../setItems/useSetItemsObserver";
+import { useNumberItemObserver } from "../setItems/useSetItemsObserver";
 import { useTooltip } from "../../util/tooltip/useTooltip";
 import MachineDisplay from "./MachineDisplay";
 import GeodeDisplay from "./GeodeDisplay";
@@ -8,7 +8,6 @@ import { MACHINES } from "./machines";
 import OverviewBox from "../OverviewBox";
 import { keysOf } from "../../util/typeUtils";
 import LabeledIPimg from "../../util/LabeledIPimg";
-import { MouseEvent } from "react";
 import RocketDisplay from "./RocketDisplay";
 
 const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
@@ -26,17 +25,16 @@ const MiningOverview = () => {
 
   const [moonstone] = useNumberItemObserver("moonstone", id);
 
-  const onMoonstoneClick = (event: MouseEvent) => {
-    Modals.open_custom_crafting('moonstone')
+  const onMoonstoneClick = () => {
+    Modals.open_custom_crafting("moonstone");
   };
 
-  const [moonstoneProps, MoonstoneToolTip] = useTooltip(
-    [<span style={{ textAlign: "center" }}>Use {moonstone} Moonstone(s)</span>]
-  );
+  const [moonstoneProps, MoonstoneToolTip] = useTooltip([
+    <span style={{ textAlign: "center" }}>Use {moonstone} Moonstone(s)</span>,
+  ]);
 
   return (
-    <OverviewBox height={"auto"} width={400}>
-
+    <OverviewBox height={"auto"} width={420}>
       <div
         style={{
           display: "flex",
@@ -51,7 +49,10 @@ const MiningOverview = () => {
           style={{
             justifyContent: "center",
             color: oilIn >= oilOut ? "#fff" : "#ff0000",
-            filter: oilIn >= oilOut ? "" : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)",
+            filter:
+              oilIn >= oilOut
+                ? ""
+                : "invert(16%) sepia(91%) saturate(5761%) hue-rotate(357deg) brightness(96%) contrast(116%)",
           }}
         />
 
@@ -62,7 +63,7 @@ const MiningOverview = () => {
         style={{
           display: "flex",
           width: "100%",
-          justifyContent: "space-evenly",
+          justifyContent: "space-around",
         }}
       >
         {Object.keys(MACHINES).map((machine) => (
@@ -79,6 +80,8 @@ const MiningOverview = () => {
         style={{
           display: "flex",
           gap: "10px",
+          flexWrap: "wrap",
+          justifyContent: "center",
         }}
       >
         {GEODES.map((geode) => (
@@ -87,7 +90,7 @@ const MiningOverview = () => {
         {MINERALS.map((mineral) => (
           <MineralDisplay mineral={mineral} />
         ))}
-        {moonstone > 0 &&
+        {moonstone > 0 && (
           <div
             style={{
               position: "relative",
@@ -109,7 +112,7 @@ const MiningOverview = () => {
             <span>{moonstone}</span>
             <MoonstoneToolTip />
           </div>
-        }
+        )}
       </div>
     </OverviewBox>
   );

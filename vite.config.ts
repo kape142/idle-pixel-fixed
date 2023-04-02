@@ -6,7 +6,7 @@ import { resolve } from "path";
 
 const name = "Idle Pixel Fixed";
 const namespace = "com.kape142.idlepixelfixed";
-const version = "1.0.4";
+const version = "1.0.5";
 const description = "Extension to improve the experience of Idle Pixel";
 const author = "kape142";
 const match = "https://idle-pixel.com/login/play/*";

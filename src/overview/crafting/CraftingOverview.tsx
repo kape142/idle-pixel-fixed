@@ -50,7 +50,7 @@ const CraftingOverview = () => {
   };
 
   return (
-    <OverviewBox height={250} width={400}>
+    <OverviewBox height={250} width={420}>
       <div
         style={{
           display: "flex",
@@ -88,8 +88,11 @@ const CraftingOverview = () => {
             width: "150px",
           }}
         >
-
-          <IPimg name={furnace} size={50} ext={oreType !== "none" ? "gif" : "png"} />
+          <IPimg
+            name={furnace}
+            size={50}
+            ext={oreType !== "none" ? "gif" : "png"}
+          />
 
           <div
             style={{

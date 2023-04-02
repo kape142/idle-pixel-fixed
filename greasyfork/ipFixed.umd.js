@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.4
+// @version      1.0.5
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -1786,7 +1786,7 @@ var __objRest = (source, exclude) => {
     };
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: 250,
-      width: 400
+      width: 420
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -1934,7 +1934,6 @@ var __objRest = (source, exclude) => {
         display: "flex",
         flexDirection: "column",
         gap: "10px",
-        width: "min-content",
         alignItems: "center"
       }
     }, /* @__PURE__ */ React__default["default"].createElement(IPimg, __spreadValues({
@@ -1946,7 +1945,6 @@ var __objRest = (source, exclude) => {
         display: "flex",
         flexDirection: "column",
         gap: "0px",
-        width: "min-content",
         alignItems: "center"
       }
     }, /* @__PURE__ */ React__default["default"].createElement("div", {
@@ -2152,15 +2150,17 @@ var __objRest = (source, exclude) => {
     const miningLevel = get_level(miningXp);
     const changeOilOut = (change) => setOilOut(oilOut + change);
     const [moonstone] = useNumberItemObserver("moonstone", id$5);
-    const onMoonstoneClick = (event) => {
+    const onMoonstoneClick = () => {
       Modals.open_custom_crafting("moonstone");
     };
-    const [moonstoneProps, MoonstoneToolTip] = useTooltip([/* @__PURE__ */ React.createElement("span", {
-      style: { textAlign: "center" }
-    }, "Use ", moonstone, " Moonstone(s)")]);
+    const [moonstoneProps, MoonstoneToolTip] = useTooltip([
+      /* @__PURE__ */ React.createElement("span", {
+        style: { textAlign: "center" }
+      }, "Use ", moonstone, " Moonstone(s)")
+    ]);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: "auto",
-      width: 400
+      width: 420
     }, /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
@@ -2180,7 +2180,7 @@ var __objRest = (source, exclude) => {
       style: {
         display: "flex",
         width: "100%",
-        justifyContent: "space-evenly"
+        justifyContent: "space-around"
       }
     }, Object.keys(MACHINES).map((machine) => /* @__PURE__ */ React.createElement(MachineDisplay, __spreadProps(__spreadValues({
       machine,
@@ -2191,7 +2191,9 @@ var __objRest = (source, exclude) => {
     })))), /* @__PURE__ */ React.createElement("div", {
       style: {
         display: "flex",
-        gap: "10px"
+        gap: "10px",
+        flexWrap: "wrap",
+        justifyContent: "center"
       }
     }, GEODES.map((geode) => /* @__PURE__ */ React.createElement(GeodeDisplay, {
       geode
