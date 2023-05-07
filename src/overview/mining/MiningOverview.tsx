@@ -10,6 +10,7 @@ import OverviewBox from "../OverviewBox";
 import { keysOf } from "../../util/typeUtils";
 import LabeledIPimg from "../../util/LabeledIPimg";
 import RocketDisplay from "./RocketDisplay";
+import { pluralMarker } from "../../util/stringUtils";
 
 const STARDUST_PRISMS = ["small", "medium", "large", "huge"];
 const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
@@ -32,7 +33,7 @@ const MiningOverview = () => {
   };
 
   const [moonstoneProps, MoonstoneToolTip] = useTooltip([
-    <span style={{ textAlign: "center" }}>Use {moonstone} Moonstone(s)</span>,
+    <span style={{ textAlign: "center" }}>Use {moonstone} Moonstone{pluralMarker(moonstone)}</span>,
   ]);
 
   return (

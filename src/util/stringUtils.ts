@@ -7,3 +7,5 @@ export const makeId = (length: number): string => {
   }
   return text;
 };
+
+export const pluralMarker = (amount: number): string => amount > 1 ? 's' : '';

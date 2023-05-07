@@ -4,6 +4,7 @@ import { MouseEvent } from "react";
 import { sendMessage } from "../../util/websocket/useWebsocket";
 import { useTooltip } from "../../util/tooltip/useTooltip";
 import Tooltip from "../../util/tooltip/Tooltip";
+import { pluralMarker } from "../../util/stringUtils";
 
 interface Props {
   geode: string;
@@ -18,10 +19,10 @@ const GeodeDisplay = ({ geode }: Props) => {
   const onGeodeClick = (event: MouseEvent) => {
     hideTooltip();
     if (event.shiftKey) {
-      setAmount(amount - 1);
+      setAmount(amount - (amount - 1));
       sendMessage("CRACK_GEODE", geode + "_geode", amount - 1);
     } else {
-      setAmount(amount);
+      setAmount(0);
       sendMessage("CRACK_GEODE", geode + "_geode", amount);
     }
   };
@@ -29,10 +30,10 @@ const GeodeDisplay = ({ geode }: Props) => {
   const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip(
     [
       <Tooltip
-        text={`Crack ${amount} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`}
+        text={`Crack ${amount} ${Items.get_pretty_item_name(geode)} Geode${pluralMarker(amount)}`}
       />,
       <Tooltip
-        text={`Crack ${amount - 1} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`}
+        text={`Crack ${amount - 1} ${Items.get_pretty_item_name(geode)} Geode${pluralMarker(amount)}`}
       />
     ]
   );
