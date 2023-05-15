@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.5
+// @version      1.0.6
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -668,6 +668,7 @@ var __objRest = (source, exclude) => {
     }
     return text;
   };
+  const pluralMarker = (amount) => amount > 1 ? "s" : "";
   const initialState$2 = {
     isOpen: false
   };
@@ -1996,24 +1997,60 @@ var __objRest = (source, exclude) => {
       }
     }, text), /* @__PURE__ */ React__default["default"].createElement("div", null, postText));
   };
+  const PrismDisplay = ({ prism }) => {
+    const [amount, setAmount] = useNumberItemObserver(prism + "_stardust_prism", `PrismDisplay-${prism}`);
+    const onPrismClick = (event) => {
+      hideTooltip();
+      if (event.shiftKey) {
+        setAmount(amount - (amount - 1));
+        sendMessage("SMASH_STARDUST_PRISM", prism + "_stardust_prism", amount - 1);
+      } else {
+        setAmount(0);
+        sendMessage("SMASH_STARDUST_PRISM", prism + "_stardust_prism", amount);
+      }
+    };
+    const [prismProps, PrismToolTip, hideTooltip] = useTooltip([
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Smash ${amount} ${Items.get_pretty_item_name(prism)} Prism${pluralMarker(amount)}`
+      }),
+      /* @__PURE__ */ React.createElement(Tooltip, {
+        text: `Smash ${amount - 1} ${Items.get_pretty_item_name(prism)} Prism${pluralMarker(amount)}`
+      })
+    ]);
+    return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
+      style: {
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        width: "50px",
+        alignItems: "center"
+      }
+    }, /* @__PURE__ */ React.createElement(IPimg, __spreadValues({
+      role: "button",
+      name: prism + "_stardust_prism",
+      size: 30,
+      onClick: onPrismClick
+    }, prismProps)), /* @__PURE__ */ React.createElement("span", null, amount), /* @__PURE__ */ React.createElement(PrismToolTip, null)) : null;
+  };
   const GeodeDisplay = ({ geode }) => {
     const [amount, setAmount] = useNumberItemObserver(geode + "_geode", `GeodeDisplay-${geode}`);
     const onGeodeClick = (event) => {
       hideTooltip();
       if (event.shiftKey) {
-        setAmount(amount - 1);
+        setAmount(amount - (amount - 1));
         sendMessage("CRACK_GEODE", geode + "_geode", amount - 1);
       } else {
-        setAmount(amount);
+        setAmount(0);
         sendMessage("CRACK_GEODE", geode + "_geode", amount);
       }
     };
     const [geodeProps, GeodeToolTip, hideTooltip] = useTooltip([
       /* @__PURE__ */ React.createElement(Tooltip, {
-        text: `Crack ${amount} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`
+        text: `Crack ${amount} ${Items.get_pretty_item_name(geode)} Geode${pluralMarker(amount)}`
       }),
       /* @__PURE__ */ React.createElement(Tooltip, {
-        text: `Crack ${amount - 1} ` + Items.get_pretty_item_name(geode) + ` Geode(s)`
+        text: `Crack ${amount - 1} ${Items.get_pretty_item_name(geode)} Geode${pluralMarker(amount)}`
       })
     ]);
     return amount > 0 ? /* @__PURE__ */ React.createElement("div", {
@@ -2047,15 +2084,15 @@ var __objRest = (source, exclude) => {
     };
     const [mineralProps, MineralToolTip, hideTooltip] = useTooltip([
       /* @__PURE__ */ React.createElement(Tooltip, {
-        text: `Use ${amount} ` + Items.get_pretty_item_name(mineral) + `(s)`,
+        text: `Use ${amount} ${Items.get_pretty_item_name(mineral)}${pluralMarker(amount)}`,
         postText: "(with confirmation)"
       }),
       /* @__PURE__ */ React.createElement(Tooltip, {
-        text: `Convert ${amount} ` + Items.get_pretty_item_name(mineral) + `(s) into ` + Ores.MINERALS_XP_MAP[mineral] * amount + ` mining xp`,
+        text: `Convert ${amount} ${Items.get_pretty_item_name(mineral)}${pluralMarker(amount)} into ${Ores.MINERALS_XP_MAP[mineral] * amount} mining xp`,
         postText: "(no confirmation)"
       }),
       /* @__PURE__ */ React.createElement(Tooltip, {
-        text: `Craft rings with ${amount} ` + Items.get_pretty_item_name(mineral) + `(s)`,
+        text: `Craft rings with ${amount} ${Items.get_pretty_item_name(mineral)}${pluralMarker(amount)}`,
         postText: "(with confirmation)"
       })
     ], {
@@ -2140,6 +2177,7 @@ var __objRest = (source, exclude) => {
       role: "button"
     }, rocketProps)), /* @__PURE__ */ React.createElement("span", null, rocketStatus && rocketStatus === "none" ? "Idle" : Items.get_pretty_item_name(rocketStatus)), /* @__PURE__ */ React.createElement(RocketToolTip, null)) : null;
   };
+  const STARDUST_PRISMS = ["small", "medium", "large", "huge"];
   const GEODES = ["grey", "blue", "green", "red", "cyan", "ancient"];
   const MINERALS = keysOf(Ores.MINERALS_XP_MAP);
   const id$5 = "MiningOverview";
@@ -2156,7 +2194,7 @@ var __objRest = (source, exclude) => {
     const [moonstoneProps, MoonstoneToolTip] = useTooltip([
       /* @__PURE__ */ React.createElement("span", {
         style: { textAlign: "center" }
-      }, "Use ", moonstone, " Moonstone(s)")
+      }, "Use ", moonstone, " Moonstone", pluralMarker(moonstone))
     ]);
     return /* @__PURE__ */ React.createElement(OverviewBox, {
       height: "auto",
@@ -2195,7 +2233,9 @@ var __objRest = (source, exclude) => {
         flexWrap: "wrap",
         justifyContent: "center"
       }
-    }, GEODES.map((geode) => /* @__PURE__ */ React.createElement(GeodeDisplay, {
+    }, STARDUST_PRISMS.map((prism) => /* @__PURE__ */ React.createElement(PrismDisplay, {
+      prism
+    })), GEODES.map((geode) => /* @__PURE__ */ React.createElement(GeodeDisplay, {
       geode
     })), MINERALS.map((mineral) => /* @__PURE__ */ React.createElement(MineralDisplay, {
       mineral
