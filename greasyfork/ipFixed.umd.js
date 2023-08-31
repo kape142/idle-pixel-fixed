@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.6
+// @version      1.0.7
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -3027,7 +3027,7 @@ var __objRest = (source, exclude) => {
   const init = () => {
     appendReact(/* @__PURE__ */ React.createElement(IPFMenuBar, null), "menu-bar-buttons");
     appendReact(/* @__PURE__ */ React.createElement(ActivityLog, null), "content");
-    appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "menu-bar-keyitems");
+    appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "left-panel-item_panel-keyitems");
     appendReact(/* @__PURE__ */ React.createElement(OverviewPanel, null), "panels", "panel-keyitems");
     window.onblur = () => {
       store.dispatch(resetModifierKeys());
