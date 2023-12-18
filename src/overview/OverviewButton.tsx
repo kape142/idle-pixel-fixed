@@ -10,22 +10,23 @@ const OverviewButton = ({}: Props) => {
 
   return (
     <div
-      className="hover hover-menu-bar-item"
+      className="hover game-menu-bar-left-table-btn"
       role="button"
       onClick={() => {
         hideElementById(Globals.currentPanel);
         Globals.currentPanel = "";
         dispatch(openOverview());
       }}
+      style={{padding: "5px 0"}}
     >
       <IPimg
         style={{
-          marginRight: "10px",
+          margin: "5px",
         }}
         name={"community_center_1"}
-        className={"w20"}
+        size={30}
       />
-      <span>OVERVIEW</span>
+      <span style={{color: "silver"}}>OVERVIEW</span>
     </div>
   );
 };

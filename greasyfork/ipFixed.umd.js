@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Pixel Fixed
 // @namespace    com.kape142.idlepixelfixed
-// @version      1.0.7
+// @version      1.0.8
 // @description  Extension to improve the experience of Idle Pixel
 // @author       kape142
 // @match        https://idle-pixel.com/login/play/*
@@ -813,20 +813,23 @@ var __objRest = (source, exclude) => {
   const OverviewButton = ({}) => {
     const dispatch = useIPFDispatch();
     return /* @__PURE__ */ React.createElement("div", {
-      className: "hover hover-menu-bar-item",
+      className: "hover game-menu-bar-left-table-btn",
       role: "button",
       onClick: () => {
         hideElementById(Globals.currentPanel);
         Globals.currentPanel = "";
         dispatch(openOverview());
-      }
+      },
+      style: { padding: "5px 0" }
     }, /* @__PURE__ */ React.createElement(IPimg, {
       style: {
-        marginRight: "10px"
+        margin: "5px"
       },
       name: "community_center_1",
-      className: "w20"
-    }), /* @__PURE__ */ React.createElement("span", null, "OVERVIEW"));
+      size: 30
+    }), /* @__PURE__ */ React.createElement("span", {
+      style: { color: "silver" }
+    }, "OVERVIEW"));
   };
   const useNumberItemObserver = (item, id2, specialCase = (_) => false) => {
     const [value, setValue] = useItemObserver(item, id2, (value2) => specialCase(Number(value2)));
@@ -3027,7 +3030,7 @@ var __objRest = (source, exclude) => {
   const init = () => {
     appendReact(/* @__PURE__ */ React.createElement(IPFMenuBar, null), "menu-bar-buttons");
     appendReact(/* @__PURE__ */ React.createElement(ActivityLog, null), "content");
-    appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "menu-bar-buttons", "left-panel-item_panel-keyitems");
+    appendReact(/* @__PURE__ */ React.createElement(OverviewButton, null), "game-menu-bar-skills", "left-panel-item_panel-keyitems");
     appendReact(/* @__PURE__ */ React.createElement(OverviewPanel, null), "panels", "panel-keyitems");
     window.onblur = () => {
       store.dispatch(resetModifierKeys());
